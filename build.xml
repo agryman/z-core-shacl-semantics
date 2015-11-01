@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="z-core-shacl-semantics" default="type-check" basedir=".">
+
+	<!-- Z Notation Tasks -->
+
+	<!-- fuzz is the executable fuzz type-checker. -->
+	<property name="fuzz" location="/Users/arthurryman/fuzz/fuzz-3.4.1/src/fuzz" />
+
+	<!-- = = = = = = = = = = = = = = = = =
+         macrodef: fuzz - type-check a Z specification
+         = = = = = = = = = = = = = = = = = -->
+	<macrodef name="fuzz">
+		<attribute name="specification" />
+		<attribute name="imports" default="" />
+		<sequential>
+			<concat force="yes" destfile="@{specification}.prelude">
+				<filelist dir="." files="fuzzlib common.tex @{imports}" />
+			</concat>
+			<exec executable="${fuzz}" output="@{specification}.fuzz" error="@{specification}.err">
+				<arg line="-dl -p @{specification}.prelude @{specification}" />
+			</exec>
+		</sequential>
+	</macrodef>
+
+	<target name="type-check" description="Type-checks z-core-shacl-semantics.tex.">
+		<fuzz specification="z-core-shacl-semantics" />
+	</target>
+
+	<!-- RDF Tasks -->
+
+	<!-- jena.lib.dir is the directory that stores all the Jena jar files. -->
+	<property name="jena.lib.dir" location="/Users/arthurryman/apache-jena-2.10.1/lib" />
+
+	<!-- jena.classpath is the CLASSPATH for Jena commands. -->
+	<path id="jena.classpath">
+		<fileset dir="${jena.lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<!-- = = = = = = = = = = = = = = = = =
+         macrodef: ttl2xml - convert Turtle to non-abbreviated RDF/XML
+         = = = = = = = = = = = = = = = = = -->
+	<macrodef name="ttl2xml">
+		<attribute name="model" />
+		<sequential>
+			<java classpathref="jena.classpath" classname="jena.rdfcopy" fork="true" maxmemory="1024m" output="@{model}.rdf">
+				<arg value="@{model}.ttl" />
+				<arg value="TURTLE" />
+				<arg value="RDF/XML" />
+			</java>
+		</sequential>
+	</macrodef>
+
+	<target name="validate" description="Validates all RDF source files.">
+		<ttl2xml model="user-shape" />
+	</target>
+
+</project>

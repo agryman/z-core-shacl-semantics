@@ -1,0 +1,31 @@
+# user-shape.ttl
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+@base my: <http://example.org/my/> .
+
+<UserShape> a sh:Shape ;
+     sh:choice <UserShape#constraint-1> ;
+	sh:property <UserShape#constraint-4> .
+
+<UserShape#constraint-1>
+     sh:property
+               <UserShape#constraint-2> , 
+               <UserShape#constraint-3> .
+
+<UserShape#constraint-2>
+     sh:predicate foaf:name ;
+     sh:valueType xsd:string ;
+     sh:minCount 1 ;
+     sh:maxCount 1 .
+
+<UserShape#constraint-3>
+     sh:predicate foaf:mbox ;
+     sh:nodeType sh:IRI ;
+     sh:minCount 1 .
+
+<UserShape#constraint-4>
+     sh:predicate foaf:mbox ;
+     sh:nodeKind sh:IRI ;
+     sh:minCount 1 .

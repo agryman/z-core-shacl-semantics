@@ -1,0 +1,1681 @@
+<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML+RDFa 1.1//EN' 'http://www.w3.org/MarkUp/DTD/xhtml-rdfa-2.dtd'>
+<html lang="en-US" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" typeof="bibo:Document " prefix="bibo: http://purl.org/ontology/bibo/ w3p: http://www.w3.org/2001/02pd/rec54#">
+<head><meta lang="" content="en" property="dc:language" />
+    <title>Core SHACL Semantics</title>
+    <meta charset="utf-8" />
+    
+    <script type="text/javascript" src="http://www.w3.org/2013/ShEx/demobits/jquery.min.js"></script>
+    <style type="text/css">/* --- ISSUES/NOTES --- */
+div.issue-title, div.note-title , div.ednote-title, div.warning-title {
+    padding-right:  1em;
+    min-width: 7.5em;
+    color: #b9ab2d;
+}
+div.issue-title { color: #e05252; }
+div.note-title, div.ednote-title { color: #2b2; }
+div.warning-title { color: #f22; }
+div.issue-title span, div.note-title span, div.ednote-title span, div.warning-title span {
+    text-transform: uppercase;
+}
+div.note, div.issue, div.ednote, div.warning {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+.note > p:first-child, .ednote > p:first-child, .issue > p:first-child, .warning > p:first-child { margin-top: 0 }
+.issue, .note, .ednote, .warning {
+    padding: .5em;
+    border-left-width: .5em;
+    border-left-style: solid;
+}
+div.issue, div.note , div.ednote,  div.warning {
+    padding: 1em 1.2em 0.5em;
+    margin: 1em 0;
+    position: relative;
+    clear: both;
+}
+span.note, span.ednote, span.issue, span.warning { padding: .1em .5em .15em; }
+
+.issue {
+    border-color: #e05252;
+    background: #fbe9e9;
+}
+.note, .ednote {
+    border-color: #52e052;
+    background: #e9fbe9;
+}
+
+.warning {
+    border-color: #f11;
+    border-right-width: .2em;
+    border-top-width: .2em;
+    border-bottom-width: .2em;
+    border-style: solid;
+    background: #fbe9e9;
+}
+
+.warning-title:before{
+    content: "⚠"; /*U+26A0 WARNING SIGN*/
+    font-size: 3em;
+    float: left;
+    height: 100%;
+    padding-right: .3em;
+    vertical-align: top;
+    margin-top: -0.5em;
+}
+
+li.task-list-item {
+    list-style: none;
+}
+
+input.task-list-item-checkbox {
+    margin: 0 0.35em 0.25em -1.6em;
+    vertical-align: middle;
+}
+</style><link href="local.css" type="text/css" rel="stylesheet" />
+    
+    <style type="text/css">
+      .todo {
+      color: red;
+      }
+      pre {
+      tab-size: 4;
+      }
+      th {
+      text-align: left;
+      }
+      .comment {
+      /* font-lock-comment-face */
+      color: #b22222;
+      }
+      .constant {
+      /* font-lock-constant-face */
+      color: #008b8b;
+      }
+      .function-name {
+      /* font-lock-function-name-face */
+      color: #0000ff;
+      }
+      .keyword {
+      /* font-lock-keyword-face */
+      color: #a020f0;
+      }
+      .string {
+      /* font-lock-string-face */
+      color: #8b2252;
+      }
+      .type {
+      /* font-lock-type-face */
+      color: #228b22;
+      }
+      .example {
+      display: inline-block;
+      }
+      .example.wrapper {
+      background-color: #fff;
+      }
+      .example.wrapper pre {
+      background-color: #fcfaee;
+      margin-left: 0;
+      line-height: 1.2;
+      }
+      .example.wrapper .fail {
+      background-color: #fceefa
+      }
+      .verticalDivider {
+      float: left;
+      width: .5em;
+      border:thin solid #fff; /* disappears without this */
+      }
+
+      .highlight1     { margin-left: -5px; margin-right: -5px;   border-left: 5px solid rgba(176, 176, 0, .5); border-right: 5px solid rgba(176, 176, 0, .5); } /* font-weight: bold  ;  */
+      .highlight1.top {    margin-top: -5px;                      border-top: 5px solid rgba(176, 176, 0, .5);                                                } /* font-weight: bold  ;  */
+      .highlight1.bot { margin-bottom: -5px;                   border-bottom: 5px solid rgba(176, 176, 0, .5);                                                } /* font-weight: bold  ;  */
+      .lowlight1      { margin-left: -5px; margin-right: -5px;   border-left: 5px solid transparent; border-right: 5px solid transparent;                     } /* font-weight: normal;  */
+      .lowlight1.top  {    margin-top: -5px;                      border-top: 5px solid transparent;                                                          } /* font-weight: normal;  */
+      .lowlight1.bot  { margin-bottom: -5px;                   border-bottom: 5px solid transparent;                                                          } /* font-weight: normal;  */
+      .highlight2     { margin-left: -5px; margin-right: -5px;   border-left: 5px solid rgba(176, 0, 176, .5); border-right: 5px solid rgba(176, 0, 176, .5); } /* font-weight: bold  ;  */
+      .highlight2.top {    margin-top: -5px;                      border-top: 5px solid rgba(176, 0, 176, .5);                                                } /* font-weight: bold  ;  */
+      .highlight2.bot { margin-bottom: -5px;                   border-bottom: 5px solid rgba(176, 0, 176, .5);                                                } /* font-weight: bold  ;  */
+      .lowlight2      { margin-left: -5px; margin-right: -5px;   border-left: 5px solid rgba(127, 127, 127, .07); border-right: 5px solid rgba(127, 127, 127, .07);         } /* font-weight: normal;  */
+      .lowlight2.top  {    margin-top: -5px;                      border-top: 5px solid rgba(127, 127, 127, .07);                                                           } /* font-weight: normal;  */
+      .lowlight2.bot  { margin-bottom: -5px;                   border-bottom: 5px solid rgba(127, 127, 127, .07);                                                           } /* font-weight: normal;  */
+
+      .highlightBG1   { /* border: 5px solid transparent; */ background-color: #bb0; font-weight: bold; }
+      .lowlightBG1    { /* border: 5px solid transparent; */ font-weight: normal; }
+      .highlightBG2   { /* border: 5px solid transparent; */ background-color: #b00; font-weight: bold; }
+      .lowlightBG2    { /* border: 5px solid transparent; */ font-weight: normal; }
+
+      .new            { font-weight: bold; }
+      .errorSite      { color: red; }
+
+      h3 sup,h4 sup,.eval {
+      font-weight: lighter;
+      color: #307;
+      }
+      .emph{
+      font-style: italic;
+      }
+
+      .testrm{
+      font-style: normal;
+      }
+
+      .textbf{
+      font-weight: bold;
+      }
+
+      .math{
+      font-style: normal;
+      font-family: sans-serif;
+      }
+
+      .new{
+      color: #6600FF;
+      }
+
+      .block-name{
+      font-weight: bold;
+      }
+
+      .abstrsynt{
+      margin-left: 0;
+      margin-right: 2ex;
+      margin-top: 0.1ex;
+      margin-bottom: 0.1ex;
+      /* border: double 1px #888888; */
+      border: thin solid #888888;
+      padding: 1ex 2ex 0.5ex 2ex;
+      page-break-inside: avoid;
+      background-color: #F0F8F8;
+      }
+
+      .Definition{
+      margin-left: 0;
+      margin-right: 2ex;
+      margin-top: 0.1ex;
+      margin-bottom: 0.1ex;
+      /* border: double 1px #888888; */
+      border: thin solid #888888;
+      padding: 1ex 2ex 0.5ex 2ex;
+      page-break-inside: avoid;
+      background-color: #F0F0F0;
+      }
+
+
+      .quote{
+      margin-left: 3em;
+      }
+
+      .smaller{
+      font-size: .83em;
+      }
+    </style>
+  <style type="text/css">.clear { /* generic container (i.e. div) for floating buttons */
+	overflow: hidden !important;
+	width: 100% !important;
+}
+
+a.ultimatebutton {
+	background: transparent url('chrome://vcu/skin/ultimate_normal.png') no-repeat !important;
+	color: #444 !important;
+	display: block !important;
+	float: left !important;
+	font: normal 12px arial, sans-serif !important;
+	height: 29px !important;
+	width: 96px !important;
+}
+
+a.ultimateDeleteButton {
+	background: transparent url('chrome://vcu/skin/delete_button.png') no-repeat !important;
+	color: #444 !important;
+	display: block !important;
+	float: left !important;
+	font: normal 12px arial, sans-serif !important;
+	height:29px !important;
+	width: 28px !important;
+}
+
+#myultimatebem {
+	margin: 0 !important;
+	padding: 0 !important;
+	z-index: 30 !important;
+}
+
+#myultimatebem li {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	float: left;
+	font: bold 11px arial
+}
+
+#myultimatebem div {
+	position: absolute;
+	top: 29px;
+	width: 122px;
+	visibility: hidden;
+	margin: 0;
+	padding: 0;
+	background: #9CC02B;
+	border: 1px solid #4C4C4C !important
+}
+
+#myultimatebem div a {
+	position: relative !important;
+	display: block !important;
+	margin: 0 !important;
+	padding: 5px 10px !important;
+	width: auto;
+	white-space: nowrap !important;
+	text-align: center !important;
+	text-decoration: none !important;
+	background: #000000 !important;
+	color: #FFFFFF !important;
+	font: 12px arial, sans-serif !important
+}
+
+#myultimatebem div a:hover {
+	background: rgb(135,10,10) !important;
+	color: #FFFFFF !important
+}</style><style type="text/css">/*****************************************************************
+ * ReSpec 3 CSS
+ * Robin Berjon - http://berjon.com/
+ *****************************************************************/
+
+/* --- INLINES --- */
+em.rfc2119 { 
+    text-transform:     lowercase;
+    font-variant:       small-caps;
+    font-style:         normal;
+    color:              #900;
+}
+
+h1 acronym, h2 acronym, h3 acronym, h4 acronym, h5 acronym, h6 acronym, a acronym,
+h1 abbr, h2 abbr, h3 abbr, h4 abbr, h5 abbr, h6 abbr, a abbr {
+    border: none;
+}
+
+dfn {
+    font-weight:    bold;
+}
+
+a.internalDFN {
+    color:  inherit;
+    border-bottom:  1px solid #99c;
+    text-decoration:    none;
+}
+
+a.externalDFN {
+    color:  inherit;
+    border-bottom:  1px dotted #ccc;
+    text-decoration:    none;
+}
+
+a.bibref {
+    text-decoration:    none;
+}
+
+cite .bibref {
+    font-style: normal;
+}
+
+code {
+    color:  #C83500;
+}
+
+/* --- TOC --- */
+.toc a, .tof a {
+    text-decoration:    none;
+}
+
+a .secno, a .figno {
+    color:  #000;
+}
+
+ul.tof, ol.tof {
+    list-style: none outside none;
+}
+
+.caption {
+    margin-top: 0.5em;
+    font-style:   italic;
+}
+
+/* --- TABLE --- */
+table.simple {
+    border-spacing: 0;
+    border-collapse:    collapse;
+    border-bottom:  3px solid #005a9c;
+}
+
+.simple th {
+    background: #005a9c;
+    color:  #fff;
+    padding:    3px 5px;
+    text-align: left;
+}
+
+.simple th[scope="row"] {
+    background: inherit;
+    color:  inherit;
+    border-top: 1px solid #ddd;
+}
+
+.simple td {
+    padding:    3px 10px;
+    border-top: 1px solid #ddd;
+}
+
+.simple tr:nth-child(even) {
+    background: #f0f6ff;
+}
+
+/* --- DL --- */
+.section dd > p:first-child {
+    margin-top: 0;
+}
+
+.section dd > p:last-child {
+    margin-bottom: 0;
+}
+
+.section dd {
+    margin-bottom:  1em;
+}
+
+.section dl.attrs dd, .section dl.eldef dd {
+    margin-bottom:  0;
+}
+
+@media print {
+    .removeOnSave {
+        display: none;
+    }
+}
+</style><link rel="stylesheet" href="https://www.w3.org/StyleSheets/TR/W3C-ED" />
+<!--[if lt IE 9]><script src='https://www.w3.org/2008/site/js/html5shiv.js'></script><![endif]-->
+</head>
+  <body class="h-entry" id="respecDocument"><div class="head" id="respecHeader">
+  <p>
+      
+        
+            <a href="http://www.w3.org/"><img width="72" height="48" alt="W3C" src="https://www.w3.org/Icons/w3c_home" /></a>
+        
+      
+  </p>
+  <h1 property="dcterms:title" id="title" class="title p-name">Core SHACL Semantics</h1>
+  
+  <h2>W3C Editor's Draft <span class="dt-published time" property="dcterms:issued">22 June 2015</span></h2>
+  <dl>
+    
+      <dt>This version:</dt>
+      <dd><a href="http://w3c.github.io/data-shapes/semantics/" class="u-url">http://w3c.github.io/data-shapes/semantics/</a></dd>
+      <dt>Latest published version:</dt>
+      <dd><a href="http://www.w3.org/TR/shacl-semantics/">http://www.w3.org/TR/shacl-semantics/</a></dd>
+    
+    
+      <dt>Latest editor's draft:</dt>
+      <dd><a href="http://w3c.github.io/data-shapes/semantics/">http://w3c.github.io/data-shapes/semantics/</a></dd>
+    
+    
+    
+    
+    
+      
+    
+    
+    
+    <dt>Editors:</dt>
+    <dd resource="_:editor0" property="bibo:editor" class="p-author h-card vcard"><span typeof="foaf:Person" property="rdf:first"><meta content="Iovka Boneva" property="foaf:name" /><a href="http://cristal.univ-lille.fr/~boneva/" property="foaf:homepage" class="u-url url p-name fn">Iovka Boneva</a>, <a href="http://www.inria.fr/" class="p-org org h-org h-card" property="foaf:workplaceHomepage">University of Lille / Inria</a></span>
+<span resource="_:editor1" property="rdf:rest"></span>
+</dd>
+<dd resource="_:editor1" class="p-author h-card vcard"><span typeof="foaf:Person" property="rdf:first"><meta hommeaux'="" content="Eric Prud" property="foaf:name" /><a href="http://www.w3.org/People/Eric/" property="foaf:homepage" class="u-url url p-name fn">Eric Prud'hommeaux</a>, <a href="http://www.w3.org/" class="p-org org h-org h-card" property="foaf:workplaceHomepage">W3C/MIT</a></span>
+<span resource="rdf:nil" property="rdf:rest"></span>
+</dd>
+
+    
+    
+  </dl>
+  
+  
+  
+  
+    
+      <p class="copyright">
+        <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Copyright">Copyright</a> ©
+        2015
+        
+        <a href="http://www.w3.org/"><abbr title="World Wide Web Consortium">W3C</abbr></a><sup>®</sup>
+        (<a href="http://www.csail.mit.edu/"><abbr title="Massachusetts Institute of Technology">MIT</abbr></a>,
+        <a href="http://www.ercim.eu/"><abbr title="European Research Consortium for Informatics and Mathematics">ERCIM</abbr></a>,
+        <a href="http://www.keio.ac.jp/">Keio</a>, <a href="http://ev.buaa.edu.cn/">Beihang</a>). 
+        
+        W3C <a href="http://www.w3.org/Consortium/Legal/ipr-notice#Legal_Disclaimer">liability</a>,
+        <a href="http://www.w3.org/Consortium/Legal/ipr-notice#W3C_Trademarks">trademark</a> and
+        
+          <a href="http://www.w3.org/Consortium/Legal/copyright-documents">document use</a>
+        
+        rules apply.
+      </p>
+    
+  
+  <hr />
+</div>
+    <div id="abstract" class="introductory section" property="dc:abstract"><h2>Abstract</h2><p>
+      This document defines the core SHACL (SHApes Constraint Language), a language for constraining RDF instance graphs.
+    </p></div><div class="introductory section" id="sotd"><h2>Status of This Document</h2>
+  
+    
+      
+        <p>
+          <em>This section describes the status of this document at the time of its publication. Other documents may supersede this document. A list of current W3C publications and the latest revision of this technical report can be found in the <a href="http://www.w3.org/TR/">W3C technical reports index</a> at http://www.w3.org/TR/.</em>
+        </p>
+        
+        
+
+      <p>
+        Proposal to RDF Data Shapes WG
+      </p>
+    
+        
+        <p>
+          This document was published by the <a href="https://www.w3.org/2014/data-shapes">RDF Data Shapes Working Group</a> as an Editor's Draft.
+          
+          
+            If you wish to make comments regarding this document, please send them to 
+            <a href="mailto:public-rdf-shapes@w3.org">public-rdf-shapes@w3.org</a> 
+            (<a href="mailto:public-rdf-shapes-request@w3.org?subject=subscribe">subscribe</a>,
+            <a href="http://lists.w3.org/Archives/Public/public-rdf-shapes/">archives</a>).
+          
+          
+          
+          
+          
+            
+            All comments are welcome.
+            
+          
+        </p>
+        
+        
+        
+          <p>
+            Publication as an Editor's Draft does not imply endorsement by the W3C
+            Membership. This is a draft document and may be updated, replaced or obsoleted by other
+            documents at any time. It is inappropriate to cite this document as other than work in
+            progress.
+          </p>
+        
+        
+        
+        <p>
+          
+            This document was produced by a group operating under the 
+            <a href="http://www.w3.org/Consortium/Patent-Policy-20040205/" property="w3p:patentRules" id="sotd_patent">5 February 2004 W3C Patent
+            Policy</a>.
+          
+          
+          
+            
+              W3C maintains a <a rel="disclosure" href="http://www.w3.org/2004/01/pp-impl/73865/status">public list of any patent
+              disclosures</a> 
+            
+            made in connection with the deliverables of the group; that page also includes
+            instructions for disclosing a patent. An individual who has actual knowledge of a patent
+            which the individual believes contains
+            <a href="http://www.w3.org/Consortium/Patent-Policy-20040205/#def-essential">Essential
+            Claim(s)</a> must disclose the information in accordance with
+            <a href="http://www.w3.org/Consortium/Patent-Policy-20040205/#sec-Disclosure">section
+            6 of the W3C Patent Policy</a>.
+          
+          
+        </p>
+        
+          <p>This document is governed by the <a href="http://www.w3.org/2014/Process-20140801/" id="w3c_process_revision">1 August 2014 W3C Process Document</a>.
+          </p>
+        
+        
+      
+    
+  
+</div>
+
+    
+
+    
+<!-- taken from http://www.w3.org/2014/data-shapes/charter -->
+
+    <div class="informative section" id="intro">
+      <h2>Introduction</h2><p><em>This section is non-normative.</em></p>
+      <p>
+        SHACL provides structural constraints for <a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-graph">RDF graphs</a>.
+        SHACL constraints are grouped into &quot;shapes&quot;, which may also be referenced by constraints in other shapes.
+        These constraints describe the <a href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple">triples</a> connecting certain nodes in the graph.
+        SHACL can constrain the number of triples with a particular predicate and the permitted object datatype or object terms, require that the subject or object match some shape or lexical and datatype conditions.
+      </p>
+
+    </div>
+    
+<!--
+	<section id="notation">
+	  <h2>Notation</h2>
+	  <p>
+            The following HTML tags and CSS classes are used to highlight the roles of text in this document:
+	  </p>
+	  <ul>
+            <li>&lt;dfn&gt;<dfn id="dfn-shacl-defined-term">defined term</dfn>&lt;dfn&gt;</li>
+            <li>&lt;a class="internalDFN"&gt;<a title="SHACL defined term" href="#dfn-shacl-defined-term" class="internalDFN">defined term</a>&lt;/a&gt;</li>
+            <li><sup class="eval">eval</sup> &mdash; link to evaluation semantics</li>
+	  </ul>
+	</section>
+	-->
+
+
+    <div class="section">
+      <h2>Abstract Syntax</h2>
+      <div class="section">
+        <h3>RDF abstract syntax</h3>
+        <p>
+          This document uses the following labels for terms in the RDF abstract syntax:
+        </p>
+
+        <ul>
+          <li><code>Iri</code> - <a href="http://www.w3.org/TR/rdf11-concepts/#dfn-iri">RDF IRI</a></li>
+          <li><code>Blank</code> - <a href="http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node">RDF blank node</a></li>
+          <li><code>Lit</code> - <a href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal">RDF literal</a></li>
+        </ul>
+      </div>
+      <div class="section">
+        <h3 id="Simple_shape_expression_schemas">Simple shape expression schemas</h3>
+        <p>
+          The abstract syntax of shape expression schemas (or simply schemas) is given below.
+          For now we use a simplified definition of one non-terminal, namely <span class="math">ShapeConstr</span>, which is indicated by the temporary rule <span class="math">ShapeConstrTemp</span>.
+          We make this simplification in order to make defining the semantics easier, and we give the complete definition in Section <a href="#sec__complex_shape_constraints">sec: complex shape constraints</a>.
+        </p>
+
+        <div class="abstrsynt">
+          <span id="as-Schema" class="math">Schema ::= Rule+</span><br />
+          <span id="as-Rule" class="math">Rule ::= ShapeLabel ShapeDefinition ExtensionCondition*</span><br />
+          <span id="as-ShapeLabel" class="math">ShapeLabel ::=</span> an identifier
+        </div>
+
+        <p>
+          A Schema is composed of at least one rule (<span class="math">Rule</span>).
+          Every rule associates with a label (<span class="math">ShapeLabel</span>), a shape definition (<span class="math">ShapeDefinition</span>), and possibly a number of additional conditions (<span class="math">ExtensionCondition</span>) defined using an extension mechanism.
+        </p>
+
+        <div class="abstrsynt">
+          <span id="as-ShapeDefinition" class="math">ShapeDefinition ::= ClosedShape | OpenShape</span><br />
+          <span id="as-ClosedShape" class="math">ClosedShape ::= 'close' ShapeExpr</span><br />
+          <span id="as-OpenShape" class="math">OpenShape ::= 'open' InclPropSet? ShapeExpr</span><br />
+          <span id="as-InclPropSet" class="math">InclPropSet ::= PropertiesSet</span><br />
+          <span id="as-PropertiesSet" class="math">PropertiesSet ::= set of IRI</span>
+        </div>
+
+        <p>
+          A shape definition is either a closed shape (<span class="math">ClosedShape</span>), or an open shape (<span class="math">OpenShape</span>).
+          Both closed and open shapes are defined by a shape expression (<span class="math">ShapeExpr</span>).
+          Open shapes can have associated set of included properties (<span class="math">InclPropSet</span>): properties of which arbitrary extra occurances are permitted.
+          Closed and open shapes will be distinguished thanks the keywords <span class="math">close</span> and <span class="math">open</span>, respectively.
+        </p>
+
+        <div class="abstrsynt">
+          <span id="as-ShapeExpr" class="math">ShapeExpr ::= EmptyShape</span><br />
+          <span class="math">| TripleConstraint Cardinality</span><br />
+          <span class="math">| InverseTripleConstraint Cardinality</span><br />
+	  <span class="math">| NegatedTripleConstraint</span><br />
+          <span class="math">| NegatedInverseTripleConstraint</span><br />
+          <span class="math">| SomeOfShape</span><br />
+          <span class="math">| OneOfShape</span><br />
+          <span class="math">| GroupShape</span><br />
+	  <span class="math">| RepetitionShape</span><br />
+          <span id="as-EmptyShape" class="math">EmptyShape ::= 'emptyshape'</span>
+        </div>
+
+        <p>
+          A shape expression is either the empty shape (<span class="math">EmptyShape</span>) represented by the keyword <span class="math">emptyshape</span>, or a triple constraint (<span class="math">TripleConstraint</span>) or an inverse <span class="math">triple</span> constraint (<span class="math">InverseTripleConstraint</span>) followed by a cardinality constraint (<span class="math">Cardinality</span>), or a negated version of the two latter (<span class="math">NegatedTripleConstraint</span>, <span class="math">NegatedInverseTripleConstraint</span>), or a some-of shape (<span class="math">SomeOfShape</span>), or a one-of shape (<span class="math">OneOfShape</span>), or a grouping shape (<span class="math">GroupShape</span>), or a repetition shape (<span class="math">RepetitionShape</span>).
+        </p>
+
+        <div class="abstrsynt">
+          <span id="as-TripleConstraint" class="math">TripleConstraint ::= IRI ValueConstr | IRI ShapeConstr</span><br />
+          <span id="as-InverseTripleConstraint" class="math">InverseTripleConstraint ::= '^' IRI ShapeConstr</span><br />
+          <span id="as-Cardinality" class="math">Cardinality ::= '[' MinCardinality ';' MaxCardinality ']'</span><br />
+          <span id="as-MinCardinality" class="math">MinCardinality ::=</span> a natural number<br />
+          <span id="as-MaxCardinality" class="math">MaxCardinality ::=</span> a natural number <span class="math">| 'unbound'</span> <br />
+          <span id="as-NegatedTripleConstraint" class="math">NegatedTripleConstraint ::= '!' TripleConstraint</span><br />
+	  <span id="as-NegatedInverseTripleConstraint" class="math">NegatedInverseTripleConstraint ::= '!' InverseTripleConstraint</span><br />
+        </div>
+
+        <p>
+          Triple constraints are used to specify constraints to be satisfied by the triples having the focus node as subject, and the associated cardinality specifies how many triples satisfying the triple constraint are required.
+          Inverse triple constraints play a similar role, but define constraints to be satisfied by the triples having the focus node as object.
+          We will write <span class="math">a::C</span> for the triple constraint with IRI <span class="math">a</span>, and with value or shape constraint <span class="math">C</span>.
+          Cardinalities will be written as an interval in square brackets, and which maximum bound can be the special value <span class="math">unbound</span>.
+          In the examples, we omit writing the cardinality when the minimal and the maximal cardinality are both equal to one.
+          That is, we write simply <span class="math">a::C</span> for <span class="math">a::C[1;1]</span>.
+	  Negated triple and inverse triple constraints are preceded by an exclamation mark (<span class="math">!</span>).
+        </p>
+
+        <p>
+          A triple constraint can constraint the object of a triple in two different ways.
+          It either requires for the object to have some particular value (value constraint), or it requires for the object node to satisfy a shape constraint.
+          Inverse triple constraints are preceded by the <span class="math">^</span> symbol, and allow only shape constraints for the subject node.
+        </p>
+
+        <div class="abstrsynt">
+          <span id="as-ValueConstr" class="math">ValueConstr ::= ValueSet | LiteralDatatype XSFacet? | NodeKind</span><br />
+          <span id="as-ValueSet" class="math">ValueSet ::=</span> set of literals and <span class="math">IRI</span><br />
+          <span id="as-LiteralDatatype" class="math">LiteralDatatype ::=</span> an RDF literal datatype<br />
+          <span id="as-NodeKind" class="math">NodeKind ::= 'iri' | 'blank' | 'literal' | 'nonliteral'</span><br />
+          <span id="as-XSFacet" class="math">XSFacet ::=</span> an XSD restriction
+        </div>
+
+        <p>
+          A value constraint can be specified in three different ways: as a set of concrete values, that can be IRI or literals; or as a literal data possibly XSD facet restriction attached to it; or as a kind of the node, among IRI, Blank, literal or non literal.
+        </p>
+
+        <div class="abstrsynt">
+          <span id="as-ShapeConstr" class="math">ShapeConstr ::= ('!')? DisjShapeConstr | ConjShapeConstraint</span><br />
+          <span id="as-DisjShapeConstr" class="math">DisjShapeConstr ::= ShapeLabel ('or' ShapeLabel)*</span><br />
+          <span id="as-ConjShapeConstraint" class="math">ConjShapeConstraint ::= ShapeLabel ('and' ShapeLabel)*</span>
+        </div>
+
+        <p>
+          A shape constraint requires for the node type to satisfy one or more shapes.
+          A disjunctive shape constraint requires for the object node to satisfy at least one among the enumerated shapes.
+          A conjunctive shape constraint requires for the object node to satisfy all of the enumerated shapes.
+          Additionally, a shape constraint can be negated, when preceded by an exclamation mark. This negates the required types, where negation is the usual logical negation; for instance, the negation of a disjunctive shape constraint requires for the object node to satisfy none of the enumerated shapes.
+        </p>
+
+        <div class="abstrsynt">
+          <span id="as-SomeOfShape" class="math">SomeOfShape ::= ShapeExpr ('|' ShapeExpr)*</span><br />
+          <span id="as-OneOfShape" class="math">OneOfShape ::= ShapeExpr ('•' ShapeExpr)*</span> <br />
+          <span id="as-GroupShape" class="math">GroupShape ::= ShapeExpr (',' ShapeExpr)*</span> <br />
+	  <span id="as-RepetitionShape" class="math">RepetitionShape ::= ShapeExpr Cardinality</span>
+        </div>
+
+        <p>
+          Complex shape expressions can be built thanks to the four operators: some-of, one-of, grouping, and repetition.
+          A some-of shape (<span class="math">SomeOfShape</span>) requires for one of the sub-expressions to be satisfied, but does not forbid for more of the sub-expressions to be satisfied.
+          A one-of sape (<span class="math">OneOfShape</span>) requires that exactly one of the sub-expressions is satisfied.
+          A group shape (<span class="math">GroupShape</span>) requires for the neighbourhood of the focus node to be split in as many sets of triples as there are sub-expressions, and every such set of triples must satisfy the constraint given by the corresponding sub-expression.
+	  A repetition shape (<span class="math">RepetitionShape</span>) requires for the sub-shape to be repeted a number of times as specified by the cardinality constraint.
+        </p>
+
+        <div class="abstrsynt">
+          <span id="as-ExtensionCondition" class="math">ExtensionCondition ::= ExtLangName ExtDefinition</span><br />
+          <span id="as-ExtLangName" class="math">ExtLangName ::=</span> an identifier<br />
+          <span id="as-ExtDefinition" class="math">ExtDefinition ::=</span> a string<br />
+        </div>
+
+        <p>
+          Finally, an extension mechanism allows to attach additional constraints to be satisfied by the nodes of given shape.
+          Each such condition can be written in some extension language (<span class="math">ExtLangName</span>), and the actual constraint is a Boolean function definition in the corresponding language with <code>true</code> asserting that the focus node does not meet the constraints in <span class="math">ExtDefinition</span>.
+        </p>
+
+        <p>
+          We require an obvious criterion that every shape label that appears in the schema, appears in the left hand side of exactly one rule (that is, all shape labels are defined).
+        </p>
+      </div>
+    </div>
+    
+<!--
+	<section>
+	  <h2>Abstract Syntax</h2>
+	  <p>
+            A <dfn id="dfn-shacl-shape">shape</dfn> <sup><a title="shape matches" href="#dfn-shacl-shape-matches">eval</a></sup> describes the triples whose subject or object is some <dfn id="dfn-shacl-focus-node">focus node</dfn> in an RDF graph.
+            A shape has zero or one <dfn id="dfn-shacl-triple-constraint">triple constraints</dfn> attached to it which describe the <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a>'s triples.
+            A triple constraint is one of the following:
+	  </p>
+	  <ul>
+            <li><a title="triple constraint" href="#dfn-shacl-property-constraint" class="internalDFN">triple constraint</a> defines the characteristics of matching triples associated with the <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a>.</li>
+            <li><a title="inverse triple constraint" href="#dfn-shacl-inverse-property-constraint" class="internalDFN">inverse triple constraint</a> defines the characteristics of matching triples associated with the <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a>.</li>
+            <li><a title="group shape" href="#dfn-shacl-and-constraint" class="internalDFN">group shape</a> defines matching of a set of <a title="constraint" href="#dfn-shacl-triple-constraint" class="internalDFN">triple constraints</a>.</li>
+            <li><a title="disjunctive shape" href="#dfn-shacl-or-constraint" class="internalDFN">disjunctive shape</a> defines matching of a set of <a title="constraint" href="#dfn-shacl-triple-constraint" class="internalDFN">triple constraints</a>.</li>
+	  </ul>
+	  <p>
+	  </p>
+	  <section>
+            <h3>Triple Constraint <sup><a title="SHACL triple constraint matches" href="#dfn-shacl-property-constraint-matches" class="internalDFN">eval</a></sup></h3>
+            <p>
+              A <dfn id="dfn-shacl-property-constraint">triple constraint</dfn> has a <dfn id="dfn-shacl-predicate">predicate</dfn> which identifies the triple's predicate and may have a <dfn id="dfn-shacl-min-card">minimum cardinality</dfn> and/or <dfn id="dfn-shacl-max-card">maximum cardinality</dfn>, to indicate how many triples with that predicate are expected.
+              The triple constraint also has zero or one <a title="SHACL term constraint" href="#dfn-shacl-term-constraint" class="internalDFN">term constraints</a> which apply to the <em>object</em> of <a title="SHACL conjunct" href="#dfn-shacl-matching-triples" class="internalDFN">matching triples</a>.
+            </p>
+            <section id="dfn-shacl-term-constraint">
+              <h4>Term Constraints</h4>
+              <p>
+		Where a triple constraint describes matching <a title="RDF Triples" href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-triple" class="externalDFN">RDF Triples</a> [[!RDF11-CONCEPTS]], a term constraint describes matching <a title="RDF Term" href="http://www.w3.org/TR/rdf11-concepts/#dfn-rdf-term" class="externalDFN">RDF Terms</a> [RDF Concepts].
+              </p>
+              <ul>
+		<li><dfn id="dfn-shacl-node-type">node type</dfn> <sup><a title="SHACL node type matches" href="#dfn-node-type-matches" class="internalDFN">eval</a></sup>: identifies the RDF Node type (<a title="RDF IRI" href="http://www.w3.org/TR/rdf11-concepts/#dfn-iri" class="externalDFN">IRI</a>, <a title="RDF Literal" href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal" class="externalDFN">RDF literal</a>, or <a title="RDF Blank Node" href="http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node" class="externalDFN">Blank Node</a>).</li>
+		<li><dfn id="dfn-shacl-datatype">datatype</dfn> <sup><a title="SHACL datatype matches" href="#dfn-datatype-matches" class="internalDFN">eval</a></sup>: identifies the <a title="datatype IRI" href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri" class="externalDFN">datatype IRI</a> of an <a title="RDF Literal" href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal" class="externalDFN">RDF literal</a>.</li>
+		<li><dfn id="dfn-shacl-value-set">value set</dfn> <sup><a title="SHACL value set matches" href="#dfn-shacl-value-set-matches" class="internalDFN">eval</a></sup>: a set of permissible <a title="RDF IRI" href="http://www.w3.org/TR/rdf11-concepts/#dfn-iri" class="externalDFN">IRI</a>, <a title="RDF Literal" href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal" class="externalDFN">RDF literal</a> values called <dfn id="dfn-shacl-allowed-value">allowed values</dfn>.</li>
+		<li><dfn id="dfn-shacl-value-shape">value shape</dfn> <sup><a title="SHACL valu shape matches" href="#dfn-shacl-value-shape-matches" class="internalDFN">eval</a></sup>: identifies a <a title="SHACL shape" href="#dfn-shacl-shape" class="internalDFN">shape</a> and asserts that the term is described by that shape.</li>
+              </ul>
+            </section>
+	  </section>
+
+	  <section>
+            <h3>Inverse Triple Constraint <sup><a title="SHACL inverse triple constraint matches" href="#dfn-shacl-inverse-property-constraint-matches" class="internalDFN">eval</a></sup></h3>
+            <p>
+              The <dfn id="dfn-shacl-inverse-property-constraint">inverse triple constraint</dfn> is comprised of the same components as the triple constraint except it may NOT have:
+            </p>
+            <ul>
+              <li>a <a title="SHACL conjunct" href="#dfn-shacl-datatype" class="internalDFN">datatype</a> constraint</li>
+              <li>a <a title="value set" href="#dfn-shacl-value-set" class="internalDFN">value set</a> with any <a title="SHACL conjunct" href="#dfn-shacl-allowed-value" class="internalDFN">allowed value</a> which is an RDF Literal</li>
+            </ul>
+            <p>
+              <a title="SHACL term constraint" href="#dfn-shacl-term-constraint" class="internalDFN">Term constraints</a> apply to the <em>subject</em> of <a title="SHACL conjunct" href="#dfn-shacl-matching-triples" class="internalDFN">matching triples</a>.
+            </p>
+	  </section>
+
+	  <section>
+            <h3>Group Shape <sup><a title="SHACL group shape matches" href="#dfn-shacl-and-constraint-matches" class="internalDFN">eval</a></sup></h3>
+            <p>
+              The <dfn id="dfn-shacl-and-constraint">group shape</dfn> is a set of properties called <dfn id="dfn-shacl-conjunct">conjuncts</dfn>.
+            </p>
+	  </section>
+
+	  <section>
+            <h3>Disjunctive Shape <sup><a title="SHACL disjunctive shape matches" href="#dfn-shacl-or-constraint-matches" class="internalDFN">eval</a></sup></h3>
+            <p>
+              The <dfn id="dfn-shacl-or-constraint">disjunctive shape</dfn> is a set of properties called <dfn id="dfn-shacl-conjunct">disjuncts</dfn>.
+            </p>
+	  </section>
+	</section>
+	-->
+
+    <div class="section">
+      <h2>RDF Vocabulary</h2>
+      <p>
+        The SHACL abstract syntax above can be represented in an RDF graph.
+        RDF graphs are subject to the constraints in the abstract syntax above, e.g. that a triple constraint may have at most one term constraint.
+      </p>
+
+      <p>
+        SHACL <code>triple constraints</code> can be parsed with a SPARQL query:
+      </p>
+
+      <div style="border-left: medium solid #ddd;">
+        <pre>	  <span class="keyword">PREFIX</span> <span class="type">sh:</span><span class="function-name">&lt;<a href="http://www.w3.org/ns/shacl#">http://www.w3.org/ns/shacl#</a>&gt;</span><span class="comment">
+	  </span><span class="keyword">PREFIX</span> <span class="type">xsd:</span><span class="function-name">&lt;<a href="http://www.w3.org/2001/XMLSchema#">http://www.w3.org/2001/XMLSchema#</a>&gt;</span><span class="comment">
+	  </span><span class="keyword">PREFIX</span> <span class="type">rdf:</span> <span class="function-name">&lt;<a href="http://www.w3.org/1999/02/22-rdf-syntax-ns#">http://www.w3.org/1999/02/22-rdf-syntax-ns#</a>&gt;</span><span class="comment">
+	  </span>
+	  <span class="keyword">SELECT</span> <span class="variable-name">?entry</span> <span class="variable-name">?isShape</span> <span class="variable-name">?choice</span> <span class="variable-name">?group</span> 
+	  (IF(Bound(<span class="variable-name">?property</span>),                      <span class="comment"># compile TripleConstraint
+	  </span>    CONCAT(<span class="string">&quot;ShapeExpr(TripleConstraint(&quot;</span>,
+	  <span class="string">&quot;IRI(&quot;</span>, STR(<span class="variable-name">?predicate</span>), <span class="string">&quot;), &quot;</span>,
+	  IF(Bound(<span class="variable-name">?valueType</span>),      CONCAT(<span class="string">&quot;ValueType(IRI(&quot;</span>,STR(<span class="variable-name">?valueType</span>),<span class="string">&quot;))&quot;</span>),   <span class="comment"># valueType
+	  </span>        IF(Bound(<span class="variable-name">?nodeKind</span>),     CONCAT(<span class="string">&quot;NodeKind(IRI(&quot;</span>,STR(<span class="variable-name">?nodeKind</span>),<span class="string">&quot;))&quot;</span>),     <span class="comment"># nodeKind
+	  </span>          IF(Bound(<span class="variable-name">?shapeLabel</span>), CONCAT(<span class="string">&quot;ShapeLabel(IRI(&quot;</span>,STR(<span class="variable-name">?shapeLabel</span>),<span class="string">&quot;))&quot;</span>), <span class="comment"># valueShape
+	  </span>                                 CONCAT(<span class="string">&quot;ValueSet(&quot;</span>,<span class="keyword">GROUP</span>_CONCAT(CONCAT(          <span class="comment"># allowedValue
+	  </span>                                     IF(IsLiteral(<span class="variable-name">?allowedValue</span>), <span class="string">&quot;Literal&quot;</span>, <span class="string">&quot;IRI&quot;</span>), <span class="comment"># IRIs and Literals
+	  </span>                                           <span class="string">&quot;(&quot;</span>, STR(<span class="variable-name">?allowedValue</span>), <span class="string">&quot;)&quot;</span>)
+          ),<span class="string">&quot;)&quot;</span>)
+	  ))),
+	  <span class="string">&quot;))[&quot;</span>,if(Bound(<span class="variable-name">?min1</span>), STR(<span class="variable-name">?min1</span>), <span class="string">&quot;1&quot;</span>),<span class="string">&quot;,&quot;</span>,if(Bound(<span class="variable-name">?max1</span>), STR(<span class="variable-name">?max1</span>), <span class="string">&quot;INF&quot;</span>),<span class="string">&quot;]&quot;</span>), <span class="comment"># cardinality
+	  </span>    <span class="string">&quot;&quot;</span>) <span class="keyword">AS</span> <span class="variable-name">?TripleConstraint</span>)
+	  where { 
+	  {
+	  <span class="variable-name">?entry</span> <span class="type">sh:</span><span class="constant">property</span> <span class="variable-name">?property</span> .
+	  <span class="variable-name">?property</span> <span class="type">sh:</span><span class="constant">predicate</span> <span class="variable-name">?predicate</span> ;
+	  <span class="keyword">OPTIONAL</span> { <span class="variable-name">?property</span> <span class="type">sh:</span><span class="constant">minCount</span> <span class="variable-name">?min1</span> }
+	  <span class="keyword">OPTIONAL</span> { <span class="variable-name">?property</span> <span class="type">sh:</span><span class="constant">maxCount</span> <span class="variable-name">?max1</span> }
+	  <span class="keyword">OPTIONAL</span> { <span class="variable-name">?property</span> <span class="type">sh:</span><span class="constant">valueType</span> <span class="variable-name">?valueType</span> }
+	  <span class="keyword">OPTIONAL</span> { <span class="variable-name">?property</span> <span class="type">sh:</span><span class="constant">nodeKind</span> <span class="variable-name">?nodeKind</span> }
+	  <span class="keyword">OPTIONAL</span> { <span class="variable-name">?property</span> <span class="type">sh:</span><span class="constant">valueShape</span> <span class="variable-name">?shapeLabel</span> }
+	  <span class="keyword">OPTIONAL</span> { <span class="variable-name">?property</span> <span class="type">sh:</span><span class="constant">allowedValue</span> <span class="variable-name">?allowedValue</span>
+          <span class="keyword">FILTER</span> (IsIRI(<span class="variable-name">?allowedValue</span>) || IsLiteral(<span class="variable-name">?allowedValue</span>)) }
+	  } <span class="keyword">UNION</span> {
+	  <span class="variable-name">?entry</span> <span class="type">sh:</span><span class="constant">choice</span> <span class="variable-name">?choice</span>
+	  } <span class="keyword">UNION</span> {
+	  <span class="variable-name">?entry</span> <span class="type">sh:</span><span class="constant">propertyGroup</span> <span class="variable-name">?group</span>
+	  }
+	  <span class="keyword">OPTIONAL</span> { <span class="variable-name">?entry</span> <span class="keyword">a</span> <span class="type">sh:</span><span class="constant">Shape</span>
+	  <span class="keyword">BIND</span>(true <span class="keyword">AS</span> <span class="variable-name">?isShape</span>)
+	  }
+	  } <span class="keyword">GROUP</span> <span class="keyword">BY</span> <span class="variable-name">?entry</span> <span class="variable-name">?isShape</span> <span class="variable-name">?property</span> <span class="variable-name">?predicate</span> <span class="variable-name">?choice</span> <span class="variable-name">?group</span>
+          <span class="variable-name">?min1</span> <span class="variable-name">?max1</span> <span class="variable-name">?valueType</span> <span class="variable-name">?nodeKind</span> <span class="variable-name">?shapeLabel</span>
+        </pre>
+      </div>
+
+      <p>
+        This produces a hierarchy table with five columns: <code>entry</code>, <code>isShape</code>, <code>choice</code>, <code>group</code>, <code>TripleConstraint</code>. The abstract syntax is built in two steps:
+      </p>
+
+      <ol>
+        <li>compose a map of <code>entry</code> to list of tuples of <code>isShape</code>, <code>choice</code>, <code>group</code>, <code>TripleConstraint</code></li>
+        <li>
+          starting with entries where <code>isShape</code> is true, compose a <code>Rule(entry, GroupShape())</code>.<br />
+          The <code>embed(entry, collection)</code> function takes an entry and a GroupShape or DisjuntiveShape:<br />
+          for each mapping e with a key of entry:
+          <ul>
+            <li>If choice is bound, add a new SomeOfShape to <code>collection</code> and invoke <code>embed</code> with choice and the DisjuntiveShape.</li>
+            <li>else if group is bound, add a new GroupShape to <code>collection</code> and invoke <code>embed</code> with group and the DisjuntiveShape.</li>
+            <li>else TripleConstraint is added to <code>collection</code>.</li>
+          </ul>
+        </li>
+      </ol>
+
+      <p>
+        RDF node types are identified by the following IRIs:
+      </p>
+      <div class="center">
+        <table cellpadding="5" border="2" style="text-align: left" class="allname">
+          <caption> <span class="caption">Table 2.</span> RDF Node Type Identifiers
+          </caption>
+          <tbody>
+            <tr><th>RDF node type</th>                                                                                                                                <th>SHACL identifier</th></tr>
+            <tr><td><a class="externalDFN" href="http://www.w3.org/TR/rdf11-concepts/#dfn-iri" title="RDF IRI">IRI</a></td> <td class="name"><span class="type">sh:</span><span class="constant">IRI</span></td></tr>
+            <tr><td><a class="externalDFN" href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal" title="RDF Literal">Literal</a></td> <td class="name"><span class="type">sh:</span><span class="constant">Literal</span></td></tr>
+            <tr><td><a class="externalDFN" href="http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node" title="RDF Blank Node">Blank Node</a></td> <td class="name"><span class="type">sh:</span><span class="constant">BNode</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h3>RDF instance example</h3>
+        <p>
+          The following example represents a shape <code><span class="function-name">my:UserShape</span></code> composed of an <a class="internalDFN" href="#dfn-shacl-and-constraint" title="SHACL group shape">group shape</a> with two <a class="internalDFN" href="#dfn-shacl-conjunct" title="SHACL conjunct">conjuncts</a>:
+        </p>
+        <ol>
+          <li>An <a class="internalDFN" href="#dfn-shacl-or-constraint" title="SHACL disjunctive shape">disjunctive shape</a> with two <a class="internalDFN" href="#dfn-shacl-disjunct" title="SHACL disjunct">disjuncts</a>:
+            <ol>
+              <li>A <a class="internalDFN" href="#dfn-shacl-property-constraint" title="SHACL triple constraint">triple constraint</a> with a <a class="internalDFN" href="#dfn-shacl-predicate" title="SHACL predicate">predicate</a> of <span class="type">foaf:</span><span class="constant">name</span>, a <a class="internalDFN" href="#dfn-shacl-datatype" title="SHACL datatype">datatype</a> of <span class="type">xsd:</span><span class="constant">string</span>, a <a class="internalDFN" href="#dfn-shacl-min-card" title="SHACL minimum cardinality">minimum cardinality</a> of 1, a <a class="internalDFN" href="#dfn-shacl-max-card" title="SHACL maximum cardinality">maximum cardinality</a> of 1.</li>
+              <li>A <a class="internalDFN" href="#dfn-shacl-property-constraint" title="SHACL triple constraint">triple constraint</a> with a <a class="internalDFN" href="#dfn-shacl-predicate" title="SHACL predicate">predicate</a> of <span class="type">foaf:</span><span class="constant">givenName</span>, a <a class="internalDFN" href="#dfn-shacl-datatype" title="SHACL datatype">datatype</a> of <span class="type">xsd:</span><span class="constant">string</span>, a <a class="internalDFN" href="#dfn-shacl-min-card" title="SHACL minimum cardinality">minimum cardinality</a> of 1, no <a class="internalDFN" href="#dfn-shacl-max-card" title="SHACL maximum cardinality">maximum cardinality</a>.</li>
+            </ol>
+          </li>
+          <li>A <a class="internalDFN" href="#dfn-shacl-property-constraint" title="SHACL triple constraint">triple constraint</a> with a <a class="internalDFN" href="#dfn-shacl-predicate" title="SHACL predicate">predicate</a> of <span class="type">foaf:</span><span class="constant">mbox</span>, a <a class="internalDFN" href="#dfn-shacl-node type" title="SHACL node type">node type</a> of RDF IRI, a <a class="internalDFN" href="#dfn-shacl-min-card" title="SHACL minimum cardinality">minimum cardinality</a> of 1, no <a class="internalDFN" href="#dfn-shacl-max-card" title="SHACL maximum cardinality">maximum cardinality</a>.</li>
+        </ol>
+        <pre class="schema turtle"><span class="comment"># shapes (Turtle)</span>
+	  <span class="function-name">my:UserShape</span> <span class="keyword">a</span> <span class="type">sh:</span><span class="constant">Shape</span> ;
+	  <span class="type">sh:</span><span class="constant">choice</span> [
+          <span class="type">sh:</span><span class="constant">property</span> [
+          <span class="type">sh:</span><span class="constant">predicate</span> <span class="type">foaf:</span><span class="constant">name</span> ;
+          <span class="type">sh:</span><span class="constant">valueType</span> <span class="type">xsd:</span><span class="constant">string</span> ;
+          <span class="type">sh:</span><span class="constant">minCount</span> 1 ; <span class="type">sh:</span><span class="constant">maxCount</span> 1
+          ] ;
+	  
+          <span class="type">sh:</span><span class="constant">property</span> [
+          <span class="type">sh:</span><span class="constant">predicate</span> <span class="type">foaf:</span><span class="constant">givenName</span> ;
+          <span class="type">sh:</span><span class="constant">valueType</span> <span class="type">xsd:</span><span class="constant">string</span> ;
+          <span class="type">sh:</span><span class="constant">minCount</span> 1
+          ] ;
+	  ] ;                                          
+	  <span class="type">sh:</span><span class="constant">property</span> [
+          <span class="type">sh:</span><span class="constant">predicate</span> <span class="type">foaf:</span><span class="constant">mbox</span> ;
+          <span class="type">sh:</span><span class="constant">nodeType</span> <span class="type">sh:</span><span class="constant">IRI</span> ;
+          <span class="type">sh:</span><span class="constant">minCount</span> 1
+	  ] <span class="keyword">.</span></pre>
+      </div>
+
+    </div>
+
+    <div id="associations" class="section">
+      <h2>Associating Data with Shapes</h2>
+      <p>
+        SHACL defines two predicates, <span class="type">sh:</span><span class="constant">nodeShape</span> and <span class="type">sh:</span><span class="constant">classShape</span>.
+        The former asserts that a particular node in some graph conforms to a specific shape.
+        The latter asserts that every node of some type conforms to a specific shape.
+        It is expected that different communities will develop many more associations, much as the WSDL community created an association between input and output documents and an XML schema which described them.
+      </p>
+
+      <div class="issue" id="issue-1"><div class="issue-title"><span>Issue 1</span></div><div class="">
+        <p>
+          The <span class="type">sh:</span><span class="constant">classShape</span> predicate describes a way to associate shapes with classes.
+          It is currently unclear what is implied by attaching shape properties (e.g. <span class="type">sh:</span><span class="constant">property</span>) directly to a class e.g.:
+        </p>
+        <pre>          <span class="type">clinic1234:</span><span class="constant">CompletePatientRecord</span> <span class="keyword">a</span> <span class="type">owl:</span><span class="constant">Class</span> ;
+          <span class="type">sh:</span><span class="constant">property</span> [
+          <span class="type">sh:</span><span class="constant">predicate</span> <span class="type">clinic1234:</span><span class="constant">phone</span> ;
+          <span class="type">sh:</span><span class="constant">valueType</span> <span class="type">xsd:</span><span class="constant">string</span> ;
+          <span class="type">sh:</span><span class="constant">minCount</span> 1 ; <span class="type">sh:</span><span class="constant">maxCount</span> 1
+          ] <span class="keyword">.</span></pre>
+
+      </div></div>
+
+      <div class="issue" id="issue-2"><div class="issue-title"><span>Issue 2</span></div><div class="">
+        <p>
+          It's unclear whether an structure associating nodes returned from a SPARQL query would constitued a <a href="http://www.w3.org/2014/data-shapes/wiki/Requirements#Global_Constraints">global constraint</a>, e.g.
+        </p>
+        <pre>[ <span class="type">sd:</span><span class="constant">endpoint</span> <span class="function-name">&lt;http://www.example/sparql/&gt;</span> ;
+          <span class="type">sd:</span><span class="constant">defaultDataset</span> [
+          <span class="type">sd:</span><span class="constant">defaultGraph</span> [
+          <span class="type">sd:</span><span class="constant">Graph</span> [
+          <span class="type">sh:</span><span class="constant">query</span> &quot;&quot;&quot;SELECT ?s { ... }&quot;&quot;&quot; ;
+          <span class="type">sh:</span><span class="constant">hasShape</span> <span class="type">ex:</span><span class="constant">IssueShape</span>
+          ] ] ] ] <span class="keyword">.</span></pre>
+      </div></div>
+    </div>
+
+    <div id="evaluation" class="section">
+      <h2>Evaluation</h2>
+      <div id="semantics_preliminaries" class="section">
+        <h3>Preliminaries</h3>
+
+        <p>
+          We start with few preliminary definitions and notations.
+        </p>
+        <div class="Definition">
+          <span class="block-name">Notations</span>
+          <table class="notations">
+            <tbody><tr>
+              <td><span class="math">shapes(S)</span></td>
+              <td>
+                the set of shape labels that appear in the schema <span class="math">S</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="math">expr(T, S)</span></td>
+              <td>
+                the shape expression that is in the definition of the shape label <span class="math">T</span> in the schema <span class="math">S</span>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="math">incl(T, S)</span></td>
+              <td>
+                the set of included properties associated with the definition of the shape label <span class="math">T</span> in <span class="math">S</span>.           Note that if <span class="math">T</span> is a closed shape, then <span class="math">incl(T, S)</span> is empty.
+
+              </td>
+            </tr>
+
+            <tr>
+              <td><span class="math">properties(Expr)</span></td>
+              <td>
+                the set of properties that appear in some triple constraint in the shape expression <span class="math">Expr</span> 
+              </td>
+            </tr>
+
+            <tr>
+              <td><span class="math">inv-properties(Expr)</span></td>
+              <td>
+                the set of properties that appear in some inverse triple constraint in the shape expression <span class="math">Expr</span> 
+              </td>
+            </tr>
+
+            <tr>
+              <td><span class="math">dep-graph(S)</span></td>
+              <td>
+                the <span class="emph">shapes dependency graph</span> of <span class="math">S</span>, is the directed graph which set of nodes is <span class="math">shapes(S)</span>, and that has an edge from <span class="math">T1</span> to <span class="math">T2</span> iff the shape label <span class="math">T2</span> is in <span class="math">expr(T1, S)</span>
+              </td>
+            </tr>
+
+            <tr>
+              <td><span class="math">dep-subgraph(T, S)</span></td>
+              <td>
+                the sub-graph of <span class="math">dep-graph(S)</span> induced by the nodes reachable from the node <span class="math">T</span> in <span class="math">dep-graph(S)</span>; here by reachable we mean the classical reachability in graphs
+              </td>
+            </tr>
+
+            <tr>
+              <td><span class="math">negshapes(S)</span></td>
+              <td>
+                the set of negated shape labels in the schema <span class="math">S</span>; these are the shape labels that appear in <span class="math">dep-subgraph(T, S)</span> for some shape label <span class="math">T</span> s.t. 
+                <ul>
+                  <li><span class="math">T</span> appears in a negated shape constraint, or</li>
+                  <li><span class="math">T</span> appears in some triple constraint or inverse triple constraint under a one-of constraint, or</li>
+                  <li>there is a shape label <span class="math">T1</span> and a shape triple constraint <span class="math">p::C</span>, or an inverse shape triple constraints <span class="math">^p::C</span> in <span class="math">expr(T1, S)</span>, and <span class="math">T</span> appears in <span class="math">C</span>.
+                  </li>
+                </ul>
+              </td>
+            </tr>
+
+            <tr>
+              <td><span class="math">!T</span></td> 
+              <td>a negated shape label, that is, denotes that <span class="math">T</span> is an element of <span class="math">negshapes(S)</span>
+              </td>
+            </tr>
+
+            <tr>
+              <td><span class="math">allowed(V)</span></td>
+              <td>the set of allowed values for a value constraint <span class="math">V</span></td>
+            </tr>
+
+            <tr>
+              <td><span class="math">S<sub>ri</sub></span></td>
+              <td>for a schema <span class="math">S</span>, let a proof tree for some <span class="math">Neigh |- Expr</span>, where <span class="math">Neigh</span> is a set of triples and <span class="math">Expr</span> is a shape definition in <span class="math">S</span>, and let <span class="math">r</span> be a node in that proof tree that corresponds to some application of rule-one-of, and let <span class="math">Expr<sub>ri</sub></span> be sub-expression used in the premise of the rule application in <span class="math">r</span>. 
+		Then <span class="math">S<sub>ri</sub></span> is the schema obtained from <span class="math">S</span> by removing the sub-expression <span class="math">Expr<sub>ri</sub></span> from <span class="math">S</span></td>
+            </tr>
+
+          </tbody></table>
+        </div>
+
+        <p>
+          Intuitively, <span class="math">negshapes(S)</span> is the set of shapes labels for which one needs to check whether some nodes in a graph do not satisfy these shapes, in order to validate the graph against the schema <span class="math">S</span>. 
+          Whatever the kind of a value constraint (value set, or literal data type, or node kind), it defines a set of values.
+          For instance, the allowed values of the literal data type constraint <span class="math">int</span> are all the literal integer values; the allowed values of the <span class="math">nonliteral</span> value constraint are all IRI and all blank nodes.
+        </p>
+	
+	<div class="Definition">
+          <span class="block-name">Definition</span> [Well defined schema]
+          <p>
+            A shape expression schema <span class="math">S</span> is called <span class="emph">well defined</span> if for all negated shape label <span class="math">!T</span> in <span class="math">negshapes(S)</span>, the corresponding dependency sub-graph <span class="math">dep-subgraph(T, S)</span> is a directed acyclic graph.
+          </p>
+	</div>
+	
+	<p>
+          The semantics of shape expression schemas is sound only for well-defined schemas. Therefore, from now on, we consider only well defined schemas.
+	</p>
+      </div>
+      
+      <div class="section">
+	<h3 id="Declarative_semantics_of_simple_shape_expression_schemas">Declarative semantics of shape expression schemas</h3>
+	
+	<p>
+	  Negated triple and inverse triple constraints are introduced as syntactic facility, their semantics being defined using their non negated versions and zero cardinality. 
+	  More precisely, for every triple or inverse triple constraint <span class="math">X</span>, its negated version <span class="math">!X</span> is a shortcut for <span class="math">X[0;0]</span>. 
+	  Therefore, in what follows we do not give semantics for negated constraints. 
+	  Note also that, even though called negated, these constraints do not introduce negation in the sense of negated shapes, and do not interfere with well-definedness of schemas. 
+	</p>
+	
+	<p>
+          In order to handle triple constraints and inverse triple constraints, the triples of a graph will be labeled depending on whether they have the focus node as subject, or as object. Concretely a labeled triple is either an outgoing triple of the form <span class="math">(out, n, p, u)</span>, or an incoming triple of the form <span class="math">(inc, u, p, n)</span>, where <span class="math">(n, p, u)</span> and <span class="math">(u, p, n)</span> are triples, and <span class="math">out</span> and <span class="math">inc</span> are special labels. From now on, we consider that all triples are labeld, and call them simply triples (even though technically they are quadruples).
+	</p>
+	
+	<div class="Definition">
+          <span class="block-name">Definition</span> [Triple matches constraint]
+          <p>
+            We say that an outgoing triple <span class="math">(out, n, p, u)</span> <span class="emph">matches</span> a triple constraint <span class="math">a::C</span> iff <span class="math">p = a</span>.
+          </p>
+          <p>
+            We say that an incoming triple <span class="math">(inc, u, p, n)</span> <span class="emph">matches</span> an inverse triple constraint <span class="math">^a::C</span> iff <span class="math">p = a</span>.
+          </p>
+	</div>
+	
+	<p>
+          The following definition introduces the notion of satisfiability of a shape constraint by a set of triples. Such satisfiability is going to be used for checking that the neighborhood of a node satisfies <span class="emph">locally</span> the constraints defined by a shape expression, without taking into account whether the shapes required by the triple constraints and inverse triple constraints are satisfied.
+	</p>
+	
+	<div class="Definition">
+          <span class="block-name">Definition</span> [Set of triples satisfies a shape expression] 
+	  
+          <p>
+            Let <span class="math">Neigh</span> be a set of (labeled) triples, and let <span class="math">Expr</span> be a shape expression (as defined by <span class="math">ShapeExpr</span>).
+            We say that <span class="math">Neigh</span> <span class="emph">satisfies</span> <span class="math">Expr</span> iff:
+          </p>
+          <ul>
+            <li><span class="math">Expr</span> is the empty shape <span class="math">emptyshape</span> and <span class="math">Neigh</span> is the empty set, or</li>
+            <li><span class="math">Expr</span> is a triple constraint <span class="math">a::C[m;M]</span> (where <span class="math">m</span> and <span class="math">M</span> are the minimal and the maximal cardinality, respectively), every triple in <span class="math">Neigh</span> matches <span class="math">a::C</span>, and the number of elements of <span class="math">Neigh</span> is in the bounds given by <span class="math">[m;M]</span>;</li>
+            <li><span class="math">Expr</span> is an inverse triple constraint <span class="math">^a::C[m;M]</span> (where <span class="math">m</span> and <span class="math">M</span> are the minimal and the maximal cardinality, respectively), every triple in <span class="math">Neigh</span> matches <span class="math">^a::C</span>, and the number of elements of <span class="math">Neigh</span> is in the bounds given by <span class="math">[m;M]</span>;</li>
+            <li><span class="math">Expr</span> is a some-of shape, let <span class="math">Expr = Expr<sub>1</sub> | Expr<sub>2</sub> | … | Expr<sub>k</sub></span>, and <span class="math">Neigh</span> satisfies <span class="math">Expr<sub>1</sub></span>, or <span class="math">Neigh</span> satisfies <span class="math">Expr<sub>2</sub></span>, … or <span class="math">Neigh</span> satisfies <span class="math">Expr<sub>k</sub></span>;</li>
+            <li><span class="math">Expr</span> is a one-of shape, let <span class="math">Expr = Expr<sub>1</sub> • Expr<sub>2</sub> • … • Expr<sub>k</sub></span>, and <span class="math">Neigh</span> satisfies <span class="math">Expr<sub>1</sub></span>, or <span class="math">Neigh</span> satisfies <span class="math">Expr<sub>2</sub></span>, … or <span class="math">Neigh</span> satisfies <span class="math">Expr<sub>k</sub></span>;</li>
+            <li><span class="math">Expr</span> is a grouping, let <span class="math">Expr = Expr<sub>1</sub>, … , Expr<sub>k</sub></span>, and <span class="math">Neigh</span> can be split into k disjoint sets of triples <span class="math">Neigh = Neigh<sub>1</sub> ∪ … ∪ Neigh<sub>k</sub></span> s.t. <span class="math">Neigh<sub>i</sub></span> satisfies <span class="math">Expr<sub>i</sub></span> for all <span class="math">i</span> in <span class="math">1..k</span>.</li>
+	    <li><span class="math">Expr</span> is a repetition, let <span class="math">Expr = Expr[m;M]</span>, and there exists a <span class="math">k</span> within the bounds given by <span class="math">[m;M]</span> s.t. <span class="math">Neigh</span> can be split into k disjoint sets of triples <span class="math">Neigh = Neigh<sub>1</sub> ∪ … ∪ Neigh<sub>k</sub></span> and each of these sets of triples satisfies <span class="math">Expr</span>, that is, <span class="math">Neigh<sub>i</sub></span> satisfies <span class="math">Expr</span> for all <span class="math">i</span> in <span class="math">1..k</span>.</li>
+          </ul>
+	</div>
+	
+	<p>
+          Note that the conditions for some-of and one-of shapes are identical. The distinction between both will be made by taking into account also the non-local, shape constraints.
+	</p>
+	
+	<p>
+          The above definition can be written using the following set of inference rules.
+          We denote <span class="math">Neigh |- Expr</span> the fact that <span class="math">Neigh</span> satisfies <span class="math">Expr</span>.
+	</p>
+	<img src="html-handmade-images/inference-rules.png" />
+	<p>
+          If a set of triples <span class="math">Neigh</span> satisfies a shape expression <span class="math">Expr</span>, then one can construct (at least one) proof tree which root is <span class="math">Neigh |- Expr</span>, using the above induction rules.
+          Given such proof tree, it can be shown that every outgoing triple <span class="math">(out, n, p, u)</span> in <span class="math">Neigh</span> appears in the conclusion of exactly one application of rule-triple-constraint.
+          Similarly, every incoming triple <span class="math">(out, u, p, n)</span> in <span class="math">Neigh</span> appears in the conclusion of exactly one application of rule-inverse-triple-constraint.
+          For every outgoing, resp. incoming triple <span class="math">(x, n, p, u)</span> in <span class="math">Neigh</span>, let <span class="math">wm(x, n, p, u)</span> be the triple constraint <span class="math">p::C</span>, resp. the inverse triple constraint <span class="math">^p::C</span>, that appears in the conclusion of the same rule application as <span class="math">(x, n, p, u)</span> (where <span class="math">x</span> is one of <span class="math">out</span> or <span class="math">inc</span>).
+          We call <span class="math">wm</span> a <span class="emph">witness mapping</span> (for the fact that <span class="math">Neigh</span> satisfies <span class="math">Expr</span>).
+          Note that every proof tree defines a unique witness mapping.
+	</p>
+	
+	<p>
+          For an RDF graph <span class="math">G</span> and a node <span class="math">n</span> in <span class="math">G</span>, the <span class="emph">outgoing neighbourhood</span> of <span class="math">n</span> in <span class="math">G</span> is the set of labeled triples <span class="math">out(G,n) = (out, n, p, u)</span> s.t. <span class="math">(n, p, u)</span> is a triple that belongs to the graph <span class="math">G</span>, and the <span class="emph">incoming neighbourhood</span> of <span class="math">n</span> in <span class="math">G</span> is the set of labeled triples <span class="math">inc(G, n) = (inc,u, p, n)</span> s.t. <span class="math">(u, p, n)</span> is a triple that belongs to the graph <span class="math">G</span>.
+	</p>
+	
+	<p>
+          On the implementation level, extension conditions are to be handled by a plugin mechanism, in which the validation procedure delegates checking of the extension condition to a registered plugin.
+          The result of evaluating the extension condition can be <span class="math">true</span>: the extension condition is satisfied, or <span class="math">false</span>: the extension condition is not satisfied, or <span class="math">error</span>: there was an error during the execution, or <span class="math">undefined</span>: the evaluation procedure didn't find the appropriate plugin.
+          On the semantics level, we suppose that for every extension language <span class="math">lang</span>, there exists an oracle function <span class="math">f<sub>lang</sub></span> that takes as parameters an RDF graph, an IRI corresponding to the focus node, and a string corresponding to the extension condition, and returns as result one of <span class="math">true</span>, <span class="math">false</span>, <span class="math">error</span>, and <span class="math">undefined</span>.
+          For the unsupported extension languages (the result is <span class="math">undefined</span>), the default behaviour is to consider that the constraint is satisfied; this however can be parametrized.
+	</p>
+	
+	<div class="Definition">
+          <span class="block-name">Definition</span> [Typing, valid typing]
+	  
+          <p>Fix a schema <span class="math">S</span> and a graph <span class="math">G</span>.</p>
+	  
+          <p>A <span class="emph">typing</span> of <span class="math">G</span> is a map that associates a (possibly empty) set of shape labels (<span class="math">shapes(S)</span>) and negated shape labels (<span class="math">negshapes(S)</span>) with every node of <span class="math">G</span>, and such that for every node <span class="math">n</span> in <span class="math">G</span> and for every negated shape label <span class="math">!T ∈ negshapes(S)</span>, either <span class="math">T</span> or <span class="math">!T</span> belongs to <span class="math">t(n)</span>.
+          </p>
+	  
+          <p>
+            For a typing <span class="math">t</span>, a node <span class="math">u</span>, and a shape constraint <span class="math">C</span>, we say that <span class="math">t(u)</span> <span class="emph">satisfies</span> <span class="math">C</span>, if:
+	  </p>
+          <ul>
+            
+<!-- <li><m>C</m> is a value constraint, and <m>u &isin; allowed(C)</m>, or -->
+
+            
+<!-- </li> -->
+
+            <li><span class="math">C = T1 and ... and Tk</span>, and <span class="math">Ti ∈ t(u)</span> for all <span class="math">i ∈ 1..k</span>, or
+            </li>
+            <li><span class="math">C = T1 or ... or Tk</span>, and <span class="math">Ti ∈ t(u)</span> for some <span class="math">i ∈ 1..k</span>, or
+            </li>
+            <li><span class="math">C = !(T1 and ... and Tk)</span>, and <span class="math">!Ti ∈ t(u)</span> for some <span class="math">i ∈ 1..k</span>, or
+            </li>
+            <li><span class="math">C = !(T1 or ... or Tk)</span>, and <span class="math">!Ti ∈ t(u)</span> for all <span class="math">i ∈ 1..k</span>.
+            </li>
+          </ul>
+	  
+          <p>For a typing <span class="math">t</span>, a node <span class="math">n</span> and a triple or inverse triple constraint <span class="math">X</span>, let <span class="math">Matching(n, t, X)</span> be the set of triples defined by:
+	  </p>
+          <ul>
+            <li>
+	      <span class="math">Matching(n, t, p::C) = {(out, n, p, u) ∈ G | u ∈ allowed(C)}</span> if <span class="math">p::C</span> is a value triple constraint;
+            </li>
+            <li>
+	      <span class="math">Matching(n, t, p::C) = {(out, n, p, u) ∈ G | t(u)</span> satisfies <span class="math">C}</span> if <span class="math">p::C</span> is a shape triple constraint;
+            </li>
+            <li>
+	      <span class="math">Matching(n, t, ^p::C) = {(inc, u, p, n) ∈ G | t(u)</span> satisfies <span class="math">C}</span> if <span class="math">^p::C</span> is an  inverse triple constraint.
+            </li>
+          </ul>
+	  
+          <p>
+            A typing is called <span class="emph">valid typing</span> of <span class="math">G</span> by <span class="math">S</span> if for all node <span class="math">n</span> in <span class="math">G</span>,  </p>
+	  
+          <ul>
+            <li>for all negated shape label <span class="math">!T</span>, if <span class="math">!T ∈ t(n)</span>, then <span class="math">t1</span> is not a valid typing, where <span class="math">t1</span> is the typing that agrees with <span class="math">t</span> everywhere, except for <span class="math">T ∈ t1(n)</span>, and
+            </li>
+            <li>for all shape label <span class="math">T</span>, if <span class="math">T ∈ t(n)</span>, then there exist three mutually disjoint sets <span class="math">Matching</span>, <span class="math">OpenProp</span>, <span class="math">Rest</span> such that
+              <ol>
+		
+		
+<!-- Union of Matched, Rest, OpenProp -->
+
+		<li><span class="math">out(G, n) ∪ inc(G, n) = Matching ∪ OpenProp ∪ Rest</span>, and
+		</li>
+		
+		
+<!-- Rest -->
+
+		<li><span class="math">Rest = Rest<sub>out</sub> ∪ Rest<sub>inc</sub></span>, where <br />
+		  <span class="math">Rest<sub>out</sub> = {(out, n, p, u) ∈ out(G, n) | p ∉ properties(expr(T, S))}</span>, and <br />
+		  <span class="math">Rest<sub>inc</sub> = {(inc, u, p, n) ∈ inc(G, n) | p ∉ invproperties(expr(T, S))}</span>, and
+		</li>
+		
+		
+<!-- Matching -->
+
+		<li><span class="math">Matching</span> is the union of the sets <span class="math">Matching(n, t, X)</span> for all triple constraint or inverse triple constraint <span class="math">X</span> that appears in <span class="math">expr(T, S)</span>, and
+		</li>
+		
+		
+<!-- Closed shape -->
+
+		<li>if <span class="math">T</span> is a closed shape, then <span class="math">Rest<sub>out</sub> = ∅</span> and <span class="math">OpenProp = ∅</span>
+		</li>
+		
+		
+<!-- Open shape -->
+
+		<li>if <span class="math">T</span> is an open shape, then <span class="math">OpenProp ⊆ {(out, n, p, u) ∈ out(G, n) | p ∈ incl(T, S)}</span>
+		</li>
+		
+		
+<!-- Satisfies the local constraints -->
+
+		<li>there exists a proof tree with corresponding witness mapping <span class="math">wm</span> for the fact that <span class="math">Matching</span> satisfies <span class="math">expr(T, S)</span>, and s.t.  
+		  <ul>
+		    <li>for all outgoing triple <span class="math">(out, n, p, u)</span>, it holds <span class="math">(out, n, p, u)  ∈ Matching(n, t, wm((out, n, p, u)))</span>, and moreover if <span class="math">wm((out, n, p, u))</span> is a shape triple constraint, then there is no value triple constraint <span class="math">p::C</span> in <span class="math">expr(T, S)</span> s.t. <span class="math">(out, n, p, u) ∈ Matching(n, t, p::C)</span>, and
+		    </li>
+		    <li> for all incoming triple <span class="math">(inc, u, p, n) ∈ G</span>, it holds <span class="math">(inc, u, p, n) ∈ Matching(n, t, wm((inc, u, p, n)))</span>, and
+		    </li>
+		    
+		    <li>for all node <span class="math">r</span> that corresponds to an application of rule-one-of in the proof tree, there does not exist a valid typing <span class="math">t1</span> of <span class="math">G</span> by <span class="math">S<sub>ri</sub></span> s.t. <span class="math">T ∈ t1(n)</span>, and
+		    </li>
+		  </ul>
+		</li>
+		
+		
+<!-- Extensions -->
+
+		<li>for all extension condition <span class="math">(lang, cond)</span>, associated with the type <span class="math">T</span>, <span class="math">f<sub>lang</sub>(G, n, cond)</span> returns <span class="math">true</span> or <span class="math">undefined</span>.
+		</li>
+		
+              </ol>
+            </li>
+          </ul>
+	  
+	</div>
+	
+	<p>
+          We now give a more intuitive explanation of the above definition.
+	</p>
+	
+	<p>
+          The fact that <span class="math">t(u)</span> satisfies a shape constraint <span class="math">C</span> is used to ensure that the typing <span class="math">t</span> correctly propagates the shape constraints required in the shape triple constraints.
+	</p>
+
+	<p>
+          The set <span class="math">Matching(n, t, X)</span> contains all the triples in the neighbourhood of the node <span class="math">n</span> that match the constraint <span class="math">X</span> while propagating the shape constraints required by <span class="math">X</span>.
+	</p>
+
+	<p>Now, passing into review all the conditions for a valid typing. Intuitively, a valid typing will associate the shape <span class="math">T</span> to a the node <span class="math">n</span> only if <span class="math">n</span> satisfies the constraints for <span class="math">T</span>. As some constraints require to check that some nodes do not satisfy some shapes, we also keep track of the non-satisfied shapes, by associating negated types with those nodes.
+	</p>
+	<ul>
+          <li>Intuitively, we want to associate the negated shape <span class="math">!T</span> to a node <span class="math">n</span> only if <span class="math">n</span> does not satisfy the constraints for <span class="math">T</span>. 
+            This requirement is insured by the fact that replacing <span class="math">!T</span> by <span class="math">T</span> does not yield a valid typing.
+          </li>
+          
+          <li>All the other conditions are there to ensure that the typing <span class="math">t</span> properly captures the satisfiability of the non negated constraints.
+            
+            <ol>
+              <li> The triples in the neighborhood of the node <span class="math">n</span> contribute to satisfy the shape <span class="math">T</span> in different ways, and are therefore dispatched to three disjoint sets, <span class="math">Matching</span>, <span class="math">OpenProp</span> and <span class="math">Rest</span>. 
+              </li>
+
+              <li> The set <span class="math">Rest</span> contains all the triples which property is not mentioned in the definition of the shape <span class="math">T</span>. Note that we consider separately the outgoing and incoming properties.
+              </li>
+
+              <li> The set <span class="math">Matching</span> contains all the triples that satisfy some of the triple constraints or inverse triple constraints from the definition of the shape <span class="math">T</span>.
+		It follows that <span class="math">OpenProp</span> contains the triples whose property is mentioned in <span class="math">T</span>, but that do not satisfy the condition for the object node (for outgoing triples) or for the subject node (for incoming triples).
+              </li>
+
+              <li> A closed shape does not allow outgoing triples which property is not mentioned in the shape definition, nor triples which property is mentioned, but did not satisfy the recursive shape constraints or the value constraints. On the other hand, the &quot;closedness&quot; criterion applies only on the outgoing triples: the fact that there is no constraint on <span class="math">Rest<sub>inc</sub></span> means that we always allow incoming triples whose properties are not mentioned. The asymmetric treatment of incoming and outgoing triples is a design choice: we offer the possibility to define more precise constraints for outgoing triples, as such constraints appear to be more useful, according to the use cases.
+              </li>
+
+              <li> An open shape allows all triples which properties are not mentioned (no restriction on the set <span class="math">Rest</span>), and allows also outgoing triples in <span class="math">OpenProp</span> as soon as their property is authorized by the included open properties. Note that the included properties are only allowed for the outgoing triples.
+              </li>
+              
+              <li>
+		The most complex condition ensures that the constraints are satisfied recursively.
+		As a first condition, all the triples that matched some of the triple constraints (or inverse triple constraints), must participate in satisfying the local and recursive constraints specified in the type definition. 
+		This requirement is translated by the fact that <span class="math">Matched |- expr(T, S)</span>. 
+		Moreover,
+		<ul>
+		  <li> If an outgoing triple <span class="math">(out, n, p, u)</span> participates in satisfying some triple constraint <span class="math">p::C</span>, then the shape or value constraint <span class="math">C</span> is satisfied by the object node <span class="math">u</span>. 
+		    Additionally, we give a &quot;priority&quot; to the value constraints, requiring that whenever the triple <span class="math">(out, n, p, u)</span> satisfies some of the value triple constraints, it cannot be used as a witness for some of the shape triple constraints;
+		  </li>
+
+		  <li> Similarly, the shape constraints required by the inverse triple constraints are correctly propagated through the incoming triples.
+		  </li>
+
+		  <li> The next condition ensures that in every one-of constraint, only one of the sub-constraints is satisfied. This is ensured by the fact that if this sub-constraint is removed, then no valid typing can be found.
+		  </li>
+		</ul>
+              </li>
+
+              <li> The very last condition ensures that the extension constraints are satisfied.
+              </li>
+
+            </ol>
+	  </li>
+	</ul>
+      </div>
+    </div>
+    <div class="section">
+	<h2 id="Validating_a_graph_w.r.t._a_schema_and_required_shapes">Validating a graph w.r.t. a schema and required shapes</h2>
+	
+	<p>
+          Consider a mapping <span class="math">requiredshapes</span> that associates one or several shape labels with some of the nodes of a graph <span class="math">G</span>.
+          This association mapping is supposed to be constructed by one of the association mechanisms described in Section <a href="#associations">Associating data with shapes</a>.
+	</p>
+	
+	<p>
+          A <span class="emph">valid typing w.r.t. required shapes <span class="math">requiredshapes</span></span> is a valid typing <span class="math">t</span> such that for all node <span class="math">n</span>, <span class="math">requiredshapes(n) ∈ t(n)</span>.
+	</p>
+    </div>
+    
+    <div class="section">
+      <h2 id="Additional features">Additional features</h2>
+
+      <div class="section">
+	<h3 id="Stemming">Stemming for properties</h3>
+	<p>
+	  A stem is an IRI ending with a '~', and representing the (infinite) set of IRI that share the same prefix. 
+	  For instance, <span class="math">issue:assigned~</span> stands for all IRI that start with <span class="math">issue:assigned</span>.
+	  In shape expression, an IRI can appear in the following positions (excluding the IRI from the SHACL vocabulary):
+	</p>
+	<ul>
+	  <li>in the set of included properties for an open shape;</li>
+	  <li>in value constraints for defining the set of allowed values;</li>
+	  <li>in triple constraints (or inverse triple constraints) as properties.</li>
+	</ul>
+	<p>
+	  The two former situations already correspond to sets (of properties, or of values), so stems are already handled by the semantics.
+	  In what follows, we explain how to handle stems that appear as properties in triple constraints (it is similar for inverse triple constraints, so we omit them here).
+	  More precisely, we show how instead of single properties, triple constraints can be defined on top of sets of properties.
+	</p>
+
+	<p>
+	  Consider the following modification of the abstract syntax for the TripleConstraint rule.
+	</p>
+
+	<div class="abstrsynt">
+          <span id="as-TripleConstraint-stems" class="math">TripleConstraint ::= SetOfIri ValueConstr | SetOfIri ShapeConstr</span><br />
+	  <span id="as-SetOfIri" class="math">SetOfIri ::= </span> a set of IRI
+	</div>
+	
+	<p>
+	  Such set of IRI can be defined by a stem, or by any other means (e.g. enumeration of the elements of the set, or regular expression, etc.).
+	  We then modify the following definitions.
+	</p>
+	
+	<p>
+	  <span class="math">properties(Expr)</span> is the union of the sets of properties <span class="math">A</span> of all triple constraints <span class="math">A::C</span> that appear in the shape expression <span class="math">Expr</span>.
+	</p>
+
+	<p>
+	  [Triple matches constraint] An outgoing triple <span class="math">(out, n, p, u)</span> <span class="emph">matches</span> a triple constraint <span class="math">A::C</span> (where <span class="math">A</span> is a set of properties) if <span class="math">p ∈ A</span>.
+	</p>
+
+	<p>
+	  [Typing, valid typing] 
+	</p>
+        <ul>
+          <li>
+            <span class="math">Matching(n, t, A::C) = {(out, n, p, u) ∈ G | p ∈ A</span> and <span class="math">u ∈ allowed(C)}</span> if <span class="math">A::C</span> is a value triple constraint;
+          </li>
+          <li>
+            <span class="math">Matching(n, t, A::C) = {(out, n, p, u) ∈ G | p ∈ A</span> and <span class="math"> t(u)</span> satisfies <span class="math">C}</span> if <span class="math">A::C</span> is a shape triple constraint.
+          </li>
+        </ul>
+
+	<p>
+	  All the other definitions remain unchanged.
+	  This allows to handle sets of properties in triple constraints.
+	</p>
+
+      </div>
+    </div>
+
+
+
+<!--
+    <section id="matching">
+      <h2>Matching</h2>
+      <p>
+        This section defines the semantics of <a title="SHACL shape" href="#dfn-shacl-shape" class="internalDFN">shapes</a> as a test to see if a <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a> in an RDF graph fulfills the shapes constraints.
+        Section 6 <a href="assoc">Associating Nodes with Shapes</a> defines facilities for associating a <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a> with a <a title="SHACL shape" href="#dfn-shacl-shape" class="internalDFN">shape</a>.
+      </p>
+      <div class="defn">
+        <dfn id="dfn-shacl-triple-constraint-matches">triple constraint matches</dfn>
+        <p>
+          Evaluating a <a title="SHACL constraint" href="#dfn-shacl-triple-constraint" class="internalDFN">triple constraint</a> against a <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a> produces a boolean value.
+          Evaluation of each form of constraint is defined in <a href="#eval-triple-constraints">6.1 Triple Constraint Evaluation</a>.
+        </p>
+      </div>
+      <div class="defn">
+        <dfn id="dfn-shacl-shape-matches">shape matches</dfn>
+        <p>
+          If the <a title="SHACL shape" href="#dfn-shacl-shape" class="internalDFN">shape</a> has no <a title="constraint" href="#dfn-shacl-triple-constraint" class="internalDFN">triple constraint</a>, the result is true.
+          Otherwise, evaluation produces the result is the result of evaluating <a title="triple constraint matches" href="#dfn-shacl-triple-constraint-matches">triple constraint matches</a> on the <a title="constraint" href="#dfn-shacl-triple-constraint" class="internalDFN">triple constraint</a> with the <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a>.
+        </p>
+        <p>
+          The set of failing triples for a shape is the set of failing triples for each constraint minus the passing triples for each constraint.
+          A <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a> <dfn id="dfn-shacl-matches">matches</dfn> a <a title="SHACL shape" href="#dfn-shacl-shape" class="internalDFN">shape</a> if there are no remaining failing triples.
+          The result is a boolean value.
+        </p>
+      </div>
+      <section id="eval-triple-constraints">
+        <h3>Triple Constraint Evaluation</h3>
+
+        <div class="defn">
+          <dfn id="dfn-shacl-property-constraint-matches">triple constraint matches</dfn>
+          <p>
+            The <dfn id="dfn-shacl-matching-triples">matching triples</dfn> is the set of triples in the graph with the subject node of the <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a> and a predicate of the <a title="SHACL triple constraint" href="#dfn-shacl-property-constraint" class="internalDFN">triple constraint's</a> predicate.
+            Evaluation of a triple constraint produces true if each of the following is true:
+          </p>
+          <ul>
+            <li>If the triple constraint has a <a title="SHACL minimum cardinality" href="#dfn-shacl-min-card" class="internalDFN">minimum cardinality</a> greather than 0, the <a title="SHACL matching triples" href="#dfn-shacl-matching-triples" class="internalDFN">matching triples</a> number at least that minimum cardinality.</li>
+            <li>If the triple constraint has a <a title="SHACL maximum cardinality" href="#dfn-shacl-max-card" class="internalDFN">maximum cardinality</a> greather than 0, the <a title="SHACL matching triples" href="#dfn-shacl-matching-triples" class="internalDFN">matching triples</a> number no more than that maximum cardinality.</li>
+            <li>If there is a <a title="SHACL term constraint" href="#dfn-shacl-term-constraint" class="internalDFN">term constraint</a> present, for each object in <a title="SHACL matching triples" href="#dfn-shacl-matching-triples" class="internalDFN">matching triples</a>, that object matches (see <a href="#eval-term-constraints">6.2 Term Constraint Evaluation</a>)</li>
+          </ul>
+        </div>
+
+        <div class="defn">
+          <dfn id="dfn-shacl-inverse-property-constraint-matches">inverse triple constraint matches</dfn>
+          <p>
+            The <a title="shacl matching triples" href="#dfn-shacl-matching-triples" class="internalDFN">matching triples</a> is the set of triples in the graph with the subject node of the <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a> and a predicate of the <a title="SHACL triple constraint" href="#dfn-shacl-property-constraint" class="internalDFN">triple constraint's</a> predicate.
+          </p>
+        </div>
+
+        <div class="defn">
+          <dfn id="dfn-shacl-and-constraint-matches">group shape matches</dfn>
+          <p>
+            Evaluation of an <a title="group shape" href="#dfn-shacl-and-constraint" class="internalDFN">group shape</a> produces true if evaluation of each of the <a title="SHACL conjunct" href="#dfn-shacl-conjunct" class="internalDFN">conjuncts</a> with the <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a> produces true.
+          </p>
+        </div>
+
+        <div class="defn">
+          <dfn id="dfn-shacl-or-constraint-matches">disjunctive shape matches</dfn>
+          <p>
+            Evaluation of an <a title="disjunctive shape" href="#dfn-shacl-or-constraint" class="internalDFN">disjunctive shape</a> produces true if evaluation of any of the constituent constraints with the <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a> produces true.
+          </p>
+        </div>
+      </section>
+
+      <section id="eval-term-constraints">
+        <h3>Term Constraint Evaluation</h3>
+
+        <p>
+          <a title="SHACL term constraint" href="#dfn-shacl-term-constraint" class="internalDFN">Term constraints</a> are tested against the objects of <a title="SHACL matching triples" href="#dfn-shacl-matching-triples" class="internalDFN">matching triples</a> in <a title="SHACL triple constraint" href="#dfn-shacl-property-constraint" class="internalDFN">triple constraints</a> and the subjects of <a title="SHACL matching triples" href="#dfn-shacl-matching-triples" class="internalDFN">matching triples</a> in <a title="SHACL triple constraint" href="#dfn-shacl-inverse-property-constraint" class="internalDFN">inverse triple constraints</a>.
+        </p>
+
+        <div class="defn">
+          <dfn id="dfn-node-type-matches">node type matches</dfn>
+          <p>
+            Evaluation of a <a title="SHACL node type" href="#dfn-shacl-node-type" class="internalDFN">node type</a> produces true if the evaluated term is of the same RDF Node type (<a title="RDF IRI" href="http://www.w3.org/TR/rdf11-concepts/#dfn-iri" class="externalDFN">IRI</a>, <a title="RDF Literal" href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal" class="externalDFN">RDF literal</a>, or <a title="RDF Blank Node" href="http://www.w3.org/TR/rdf11-concepts/#dfn-blank-node" class="externalDFN">Blank Node</a>).
+          </p>
+        </div>
+
+        <div class="defn">
+          <dfn id="dfn-shacl-datatype-matches">datatype matches</dfn>
+          <p>
+            Evaluation of a <a title="SHACL datatype" href="#dfn-shacl-datatype" class="internalDFN">datatype</a> produces true if the evaluated term is an <a title="RDF Literal" href="http://www.w3.org/TR/rdf11-concepts/#dfn-literal" class="externalDFN">RDF literal</a> with the same <a title="datatype IRI" href="http://www.w3.org/TR/rdf11-concepts/#dfn-datatype-iri" class="externalDFN">datatype IRI</a>.
+          </p>
+        </div>
+
+        <div class="defn">
+          <dfn id="dfn-shacl-value-set-matches">value set matches</dfn>
+          <p>
+            Evaluation of a <a title="SHACL value set" href="#dfn-shacl-value-set" class="internalDFN">value set</a> produces true if the evaluated term is a member of the set of <a title="shacl allowed values" href="#dfn-shacl-allowed-value" class="internalDFN">allowed values</a>.
+          </p>
+        </div>
+
+        <div class="defn">
+          <dfn id="dfn-shacl-value-shape-matches">value shape matches</dfn>
+          <p>
+            Evaluation of a <a title="SHACL value shape" href="#dfn-shacl-value-shape" class="internalDFN">value shape</a> is the result of evaluating <a title="SHACL shape matches" href="#dfn-shacl-shape-matches" class="internalDFN">shape matches</a> where the <a title="SHACL focus node" href="#dfn-shacl-focus-node" class="internalDFN">focus node</a> is the evaluated term.
+          </p>
+        </div>
+
+      </section>
+    </section>
+    -->
+
+
+
+<!-- section>
+     <h2>notes</h2>
+<p>
+  Adding examples...<br/>
+  <br/>
+  <b># empty</b><br/>
+  <br/>
+  empty: no constraint.<br/>
+  <br/>
+  Example:<br/>
+  <br/>
+  <br/>
+  Note:If we are using open shapes, it will match any node without constraint.<br/>
+  <br/>
+  (Maybe, the following comment can be omitted:<br/>
+  In case of closed shapes it would match a node without any incoming or outgoing edges.<br/>
+  )<br/>
+  <br/>
+  <br/>
+  <b># arc</b><br/>
+  <br/>
+  arc predicate value cardinality: match an arc in the graph with some cardinality.<br/>
+  <br/>
+  Two possibilities: unbounded cardinality and bounded cardinality<br/>
+  <br/>
+  ## arc with unbounded cardinality<br/>
+  <br/>
+  arc predicate value {m, unbounded}: it will match a node that has at least m outgoing arcs and whose objects match with the value.<br/>
+  <br/>
+  In the axiomatic semantics, I look for m outgoing arcs that match the predicate and value...and return the remaining triples...I think I should reject if there are remaining triples that match the predicate but have values that don't match...
+</p>
+
+<div class="issue">
+  <h3>Issue (RemainingTriples)</h3>
+  <p>
+    It is not clear what is the best semantics when there are remaining triples with the same predicate that don't match the object. Eric's proposal is to fail in that case. Which would mean that the semantics needs to consider that there are no remaining triples with the same predicate and a value that doesn't match. Current axiomatic semantics doesn't fail in that case as it considers those triples "remaining" triples...it would fail if we are using closed shapes.
+  </p>
+  <h4>Example:</h4>
+  <pre>
+    schema   -&gt; &lt;shape&gt; { :shoeSize &lt;xsd:integer {1,1} }
+    data  -&gt;       &lt;x&gt; :shoeSize "hi" . (should fail because the value doesn't match xsd:integer...
+  </pre>
+  <p>
+    [[<b>Eric</b>...Could you exlain here what you said about missing/failure in natural language...I know you said me in the Skype, but I would like to read it to have a more clear understanding on how you do it...so I could model that with the axiomatic semantics...]
+  </p>
+</div>
+
+<h3>arc with bounded cardinality</h3>
+<p>
+  arc predicate value {m,n}: it will match a node that has between m and n outgoing arcs and whose objects match with the value.
+</p>
+
+<div class="issue">
+  <h3>Issue (remaining triples)</h3>
+  <p>
+    It has to review that there are no remaining triples that contain the predicate...
+  </p>
+</div>
+
+<h3>inverse arcs</h3>
+<p>
+  There are also two possibilities: bounded and unbounded cardinality.
+  The semantics is mostly the same as "arc" but it matches the subjects instead ot the objects.
+</p>
+<h4>inverse arc with unbounded cardinality</h4>
+
+<p>
+  inverseArc predicate value {m,unbounded}<br/>
+  <br/>
+  ## inverse arc with bounded cardinality<br/>
+  <br/>
+  inverseArc predicate value {m,unbounded}<br/>
+  <br/>
+  # And, conjunction (or interleave)<br/>
+  <br/>
+  and(E1,...En): it matches if there are triples that match with E1 and there are triples that match with E2.
+</p>
+
+<div class="note">
+  <h4>Note</h4>
+  <p>
+    With this semantics, the same triple can be used to match parts of E1 and of E2.
+  </p>
+  <h4>Example:</h4>
+  <pre>
+    schema: &lt;x&gt; { :a xsd:integer, :a . }
+    data: &lt;x&gt; :a 1
+  </pre>
+  <p>
+    This example may look non-intuitive because it looks as if it would mean that the shape has two arcs, one with an integer and another with any value, but if there is a single arc with an integer which passes both conjunctions, it also pass.
+  </p>
+</div>
+
+<div class="issue">
+  <h3>Issue (Multioccurrence)</h3>
+  <p>
+    There is an issue when the same predicate occurs in the conjunction. For example:
+  </p>
+
+  <pre>
+    schema: &lt;x&gt; { :bioParent { :gender ("F") } {1,1} , :bioParent { :gender ("M") }&nbsp; {1,1} }
+    data: &lt;x&gt; :bioParent [ :gender "F" ] ; :bioParent [ :gender "M" ] .&nbsp; =&gt; Fail
+    data: &lt;x&gt; :bioParent [ :gender "F" ] ; :bioParent [ :gender "M" ] ; :bioParent [ :gender "Q" ] . =&gt; Fail
+    data: &lt;x&gt; :bioParent [ :gender "F" ] ; :bioParent [ :gender "M" ] ; :xxx [ :gender "Q" ] . =&gt; Fail should pass because open shapes...extra triples
+  </pre>
+
+  <p>
+    This issue depends on the "RemainingTriples" issue and the solution to that issue would solve this one.
+  </p>
+</div>
+
+<h3>Or, disjunction</h3>
+
+<p>
+  or(E1...En): matches if the triples match any of E1...En shapes.<br/>
+</p>
+
+<h2>Extended features change that to "Issues"</h2>
+
+<h3>Not</h3>
+<p>
+  not(Shape): Matches if the triples don't match the Shape.
+</p>
+
+<div class="issue">
+  <h3>Issue (NegationShapes)</h3>
+  <p>
+    Negation of whole shapes can be difficult to handle when it is combined with recursive shapes.
+  </p>
+  <p class="todo">
+    Explain better and give some example...
+  </p>
+  <p>
+    We may define a simpler definition of negation which only negates arcs and not whole shapes.
+  </p>
+</div>
+
+<h3>noArc(Predicate,Value)</h3>
+<p>
+  matches if there are no outgoing arc with that predicate and an object that matches that Value
+</p>
+
+<h3>noInverseArc(Predicate,Value)</h3>
+<p>
+  matches if there are no incoming arc with that predicate and a subject that matches that value.
+</p>
+
+<h3>oneOf</h3>
+<p>
+  oneOf(E1,E2) - matches if the triples match with E1 or they match with E2 but not with both.
+</p>
+
+<div class="issue">
+  <h3>Issue (Exclusive-or)</h3>
+  <p>
+    Exclusive Or seems to be more intuitive from use cases...for example, "a person has either full name or first name and given name, but not both. The main problem is that it needs negation.
+  </p>
+</div>
+<h3>Closed Shapes</h3>
+
+<p>
+  close(E): matches if the triples match with node E and there are no remaining triples.
+</p>
+
+<h3>Issue</h3>
+<p>
+  Maybe include also the notion of closed Schema
+</p>
+<h3>Cardinality on groups</h3>
+<p>
+  group(E,cardinality): matches if the triples match with Shape E the number of times expressed by the cardinality
+</p>
+
+<h3>Extensibility mechanism</h3>
+
+<p>
+  Extension(Language Code): matches if there is an external processor for language "Language" that process "Code" and returns true.
+</p>
+
+    </section -->
+
+
+    <script type="text/javascript">
+      $("m").wrapInner("<span class='math'/>").children(0).unwrap();
+    </script>
+  
+
+
+</body></html>
