@@ -1,2 +1,2 @@
 # z-core-shacl-semantics
-A Z specification for the W3C Core SHACL Semantics draft we Iovka Boneva and Eric Prud'hommeaux
+Z Specification for the W3C Editor's Draft Core SHACL Semantics by Iovka Boneva and Eric Prud'hommeaux
