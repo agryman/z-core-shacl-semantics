@@ -14,6 +14,12 @@
 
 \maketitle
 
+\begin{abstract}
+This article provides a formalization of the W3C Draft Core SHACL Semantics specification using Z notation.
+This formalization exercise has identified a number of quality issues in the draft.
+It has also established that the recursive definitions in the draft are well-founded.
+Further formal validation of the draft will require the use of an executable specification technology.
+\end{abstract}
 
 \section{Introduction}
 \label{sec-introduction}
@@ -28,13 +34,25 @@ The \LaTeX\ source for this article has been type-checked using the \fuzz\ type-
 and is available in the GitHub repository  \cite{agryman:z-core-shacl-semantics}
 {\tt agryman/z-core-shacl-semantics}.
 
-We hope that the exercise of formalizing and type-checking the semantics draft will help to improve its quality
+Our motive for formalizing and type-checking the semantics draft is to help to improve its quality
 and the ultimate design of SHACL. 
+
+\subsection{Organization of this Article}
+The remainder of this article is organized as follows.
+\begin{itemize}
+\item Section~\ref{sec-basic-rdf-concepts} formalizes some basic RDF concepts.
+\item Section~\ref{sec-abstract-syntax} translates the abstract syntax of SHACL into Z notation.
+\item Section~\ref{sec-evaluation} formalizes the evaluation semantics of SHACL.
+\item Section~\ref{sec-declarative-semantics} formalizes the declarative semantics of shape expression schemas.
+\item Section~\ref{sec-issues} summarizes the quality issues found in the draft.
+\item Section~\ref{sec-conclusion} concludes with some remarks about the benefits of the formalization exercise and 
+possible next steps.
+\end{itemize}
 
 \section{Basic RDF Concepts}
 \label{sec-basic-rdf-concepts}
 This section formalizes some basic RDF concepts.
-We reuse some formal definitions given in \cite{arthur:recursion}, modifying the identifiers to match those given in the semantics draft.
+We reuse some formal definitions given in \cite{arthur:recursion}, modifying the identifiers to match those used in the semantics draft.
 
 \subsection{$TERM$}
 Let $TERM$ be the set of all RDF {\em terms}.
@@ -117,15 +135,19 @@ The distinguished node is variously referred to as the start, base, or focus nod
 
 \section{Abstract Syntax}
 \label{sec-abstract-syntax}
-This section contains a translation of the abstract syntax into Z.
+This section contains a translation of the abstract syntax of SHACL into Z.
+The semantics draft defines the abstract syntax using an informal Extended Backus-Naur Form (EBNF).
+
 The approach used here is to interpret each term or expression that appears in the abstract syntax as
-a mathematical set that is isomorphic to the set of abstract syntax tree fragments denoted by the term or expression.
-Care has been taken to preserve the exact spelling and case of each term so that there is a direct correspondence
+a mathematical set that is isomorphic to the set of abstract syntax tree fragments denoted by the corresponding term or expression.
+Care has been taken to preserve the exact spelling and case of each abstract syntax term so that there is a direct correspondence
 between the abstract syntax and Z.
 For example, the term {\tt Schema} is interpreted as the set $Schema$.
 
-There is a Z definition for each abstract syntax term that appears on the left-hand side of the definition operator ({\tt ::=}).
+We give a Z definition for each abstract syntax term that appears on the left-hand side of the EBNF definition operator ({\tt ::=}).
 The order in which these terms appear in the semantics draft has been preserved in this document.
+If a Z term has a corresponding EBNF rule, we include it here for easy reference.
+Refer to \cite{iovka:core-shacl} for the complete definition of the abstract syntax.
 
 A sequence of two or more abstract syntax terms is interpreted as the Cartesian product of the corresponding sets, i.e.
 {\tt A B} is interpreted as $A \cross B$.
@@ -134,17 +156,19 @@ The abstract syntax Kleene star ({\tt *}) and plus ({\tt +}) operators are inter
 and non-empty sequence ($\seq_1$) operators on the corresponding sets, i.e.
 {\tt A+} is interpreted as $\seq_1 A$.
 
-The abstract syntax optional operator ({\tt ?}) is interpreted as taking the set of singletons and empty set of the corresponding set
+The abstract syntax optional operator ({\tt ?}) is interpreted as taking the union of the set of singletons and the 
+empty set of the corresponding set
 using the generic function $OPTIONAL$ (defined below), i.e.
 {\tt A?} is interpreted as $OPTIONAL[A]$.
 
-Abstract syntax terms that are defined as alternations ({\tt |}) of two or more expressions are translated into free types or unions.
+Abstract syntax terms that are defined as alternations ({\tt |}) of two or more expressions are translated into either free types or unions
+of sets.
 A side effect of this process is that constructors may be required for each branch of the alternation.
 In some cases the name of the constructors can be derived from a corresponding element of the abstract syntax.
 For example, in {\tt ShapeDefinition}, {\tt open} and {\tt close} are mapped to the constructors $open$ and $close$.
 In the cases where there is no convenient element of the abstract syntax, we mint new constructor names.
 
-We also introduce new Z identifiers when the element of the abstract syntax does not map to a valid alphanumeric Z identifier.
+We also introduce new Z identifiers when an element of the abstract syntax does not map to a valid alphanumeric Z identifier.
 For example the the shape label negation operator ({\tt !}) is mapped to $negate$.
 
 \subsection{$OPTIONAL$}
@@ -154,12 +178,22 @@ An optional value is represented by a singleton set, if the value is present, or
 \end{zed}
 
 \subsection{$Schema$}
+
+\begin{verbatim}
+Schema ::= Rule+
+\end{verbatim}
+
 A schema is a sequence of one or more rules.
 \begin{zed}
 	Schema == \seq_1 Rule
 \end{zed}
 
 \subsection{$Rule$}
+
+\begin{verbatim}
+Rule ::= ShapeLabel ShapeDefinition ExtensionCondition*
+\end{verbatim}
+
 A rule consists of a shape label, a shape definition, and a sequence of zero or more extension conditions.
 \begin{zed}
 	Rule == ShapeLabel \cross ShapeDefinition \cross \seq ExtensionCondition
@@ -175,12 +209,22 @@ It is convenient to introduce functions that select the components of a rule.
 \end{zed}
 
 \subsection{$ShapeLabel$}
+
+\begin{verbatim}
+ShapeLabel ::= an identifier
+\end{verbatim}
+
 A shape label is an identifier drawn from some given set.
 \begin{zed}
 	[ShapeLabel]
 \end{zed}
 
 \subsection{$ShapeDefinition$}
+
+\begin{verbatim}
+ShapeDefinition ::= ClosedShape | OpenShape
+\end{verbatim}
+
 A shape definition is either a closed shape or an open shape.
 \begin{zed}
 	ShapeDefinition ::= \\
@@ -205,18 +249,33 @@ Given a shape definition $d$, let $shapeExpr(d)$ be its shape expression.
 \end{axdef}
 
 \subsection{$ClosedShape$}
+
+\begin{verbatim}
+ClosedShape ::= 'close' ShapeExpr
+\end{verbatim}
+
 The set of closed shapes is the range of the $close$ shape definition constructor.
 \begin{zed}
 	ClosedShape == \ran close
 \end{zed}
 
 \subsection{$OpenShape$}
+
+\begin{verbatim}
+OpenShape ::= 'open' InclPropSet? ShapeExpr
+\end{verbatim}
+
 The set of open shapes is the range of the $open$ shape definition constructor.
 \begin{zed}
 	OpenShape == \ran open
 \end{zed}
 
 \subsection{$InclPropSet$}
+
+\begin{verbatim}
+InclPropSet ::= PropertiesSet
+\end{verbatim}
+
 An included properties set is a properties set.
 \begin{zed}
 	InclPropSet == PropertiesSet
@@ -224,12 +283,30 @@ An included properties set is a properties set.
 Note that there seems little motivation to introduce the term $InclPropSet$ since it is identical to $PropertiesSet$.
 
 \subsection{$PropertiesSet$}
+
+\begin{verbatim}
+PropertiesSet ::= set of IRI
+\end{verbatim}
+
 A properties set is a set of IRIs.
 \begin{zed}
 	PropertiesSet == \power IRI
 \end{zed}
 
 \subsection{$ShapeExpr$}
+
+\begin{verbatim}
+ShapeExpr ::= EmptyShape
+| TripleConstraint Cardinality
+| InverseTripleConstraint Cardinality
+| NegatedTripleConstraint
+| NegatedInverseTripleConstraint
+| SomeOfShape
+| OneOfShape
+| GroupShape
+| RepetitionShape
+\end{verbatim}
+
 A shape expression defines constraints on RDF graphs.
 \begin{zed}
 	ShapeExpr ::= \\
@@ -255,6 +332,11 @@ A repetition shape expression consists of a shape expression and a cardinality.
 \end{itemize}
 
 \subsection{$EmptyShape$}
+
+\begin{verbatim}
+EmptyShape ::= 'emptyshape'
+\end{verbatim}
+
 The set of empty shape expressions is the singleton set that contains the empty shape.
 \begin{zed}
 	EmptyShape == \{ emptyshape \}
@@ -273,6 +355,7 @@ $inv$ indicates the inverse direction, namely the predicate relates the object n
 
 The semantics draft uses the notation {\tt \verb+^+p} for $inv(p)$.
 
+Let $predDF(dp)$ denote the predicate of a directed predicate $dp$.
 \begin{axdef}
 	predDP : DirectedPredicate \fun IRI
 \where
@@ -281,7 +364,9 @@ The semantics draft uses the notation {\tt \verb+^+p} for $inv(p)$.
 \end{axdef}
 
 \subsection{$DirectedTripleConstraint$}
-A directed triple constraint is value or shape constraint on the object of a triple, or a shape constraint on the subject of a triple.
+A directed triple constraint consists of a directed predicate and a constraint.
+The constraint is a value or shape constraint on the object of a triple if the direction is normal, 
+or a shape constraint on the subject of a triple if the direction is inverted.
 \begin{zed}
 	DirectedTripleConstraint == \\
 \t1		\{~ dp: DirectedPredicate; C: Constraint | \\
@@ -290,6 +375,7 @@ A directed triple constraint is value or shape constraint on the object of a tri
 
 The semantics draft uses the notation {\tt p::C} for $(nop(p),C)$ and {\tt \verb+^+p::C} for $(inv(p),C)$.
 
+Let $predDTC(dtc)$ denote the predicate of the directed triple constraint $dtc$.
 \begin{axdef}
 	predDTC: DirectedTripleConstraint \fun IRI
 \where
@@ -298,6 +384,7 @@ The semantics draft uses the notation {\tt p::C} for $(nop(p),C)$ and {\tt \verb
 \t2			predDTC(dp, C) = predDP(dp)
 \end{axdef}
 
+Let $constrDTC(dtc)$ denote the constraint of the directed triple constraint $dtc$.
 \begin{axdef}
 	constrDTC: DirectedTripleConstraint \fun Constraint
 \where
@@ -307,6 +394,11 @@ The semantics draft uses the notation {\tt p::C} for $(nop(p),C)$ and {\tt \verb
 \end{axdef}
 
 \subsection{$TripleConstraint$}
+
+\begin{verbatim}
+TripleConstraint ::= IRI ValueConstr | IRI ShapeConstr
+\end{verbatim}
+
 A triple constraint places conditions on triples whose subject is a given focus node
 and whose predicate is a given IRI.
 \begin{axdef}
@@ -317,6 +409,11 @@ and whose predicate is a given IRI.
 \end{axdef}
 
 \subsection{$InverseTripleConstraint$}
+
+\begin{verbatim}
+InverseTripleConstraint ::= '^' IRI ShapeConstr
+\end{verbatim}
+
 An inverse triple constraint places conditions on triples whose object is a given focus node
 and whose predicate is a given IRI.
 \begin{axdef}
@@ -327,7 +424,8 @@ and whose predicate is a given IRI.
 \end{axdef}
 
 \subsection{$Constraint$}
-A constraint is a condition on the object node of a triple or the subject node of an inverse triple.
+A constraint is a condition on the object node of a triple for normal predicates 
+or the subject node of a triple for inverse predicates.
 \begin{zed}
 	Constraint ::= \\
 \t1		valueSet \ldata \power (Lit \cup IRI) \rdata | \\
@@ -339,8 +437,8 @@ A constraint is a condition on the object node of a triple or the subject node o
 \t1		nand \ldata \seq_1 ShapeLabel \rdata
 \end{zed}
 \begin{itemize}
-\item $valueSet$ is the constructor for value set values constraints.
-A value set values constraint consists of a set of literals and IRIs.
+\item $valueSet$ is the constructor for value set value constraints.
+A value set value constraint consists of a set of literals and IRIs.
 \item $datatype$ is the constructor for literal datatype value constraints.
 A literal datatype value constraint consists of a literal datatype and an optional XML Schema facet.
 \item $kind$ is the constructor for node kind value constraints.
@@ -350,12 +448,17 @@ A node must satisfy at least one of the shapes.
 \item $and$ is the constructor for conjunction shape constraints.
 A node must satisfy all of the shapes.
 \item $nor$ is the constructor for negated disjunction shape constraints.
-A node must satisfy none of the shapes.
+A node must not satisfy any of the shapes.
 \item $nand$ is the constructor for negated conjunction shape constraints.
-A node must satisfy none of the shapes.
+A node must not satisfy all of the shapes.
 \end{itemize}
 
 \subsection{$Cardinality$}
+
+\begin{verbatim}
+Cardinality ::= '[' MinCardinality ';' MaxCardinality ']'
+\end{verbatim}
+
 Cardinality defines a range for the number of elements in a set.
 \begin{zed}
 	Cardinality == MinCardinality \cross MaxCardinality
@@ -365,12 +468,22 @@ Cardinality defines a range for the number of elements in a set.
 \end{itemize}
 
 \subsection{$MinCardinality$}
+
+\begin{verbatim}
+MinCardinality ::= a natural number
+\end{verbatim}
+
 Minimum cardinality is the minimum number of elements required to be in a set.
 \begin{zed}
 	MinCardinality == \nat
 \end{zed}
 
 \subsection{$MaxCardinality$}
+
+\begin{verbatim}
+MaxCardinality ::= a natural number | 'unbound' 
+\end{verbatim}
+
 Maximum cardinality is the maximum number of elements required to be in a set.
 \begin{zed}
 	MaxCardinality ::= maxCard \ldata \nat \rdata | unbound
@@ -438,6 +551,11 @@ when no cardinality is explicitly given in the notations {\tt a::C} and {\tt \ve
 \end{itemize}
 
 \subsection{$NegatedTripleConstraint$}
+
+\begin{verbatim}
+NegatedTripleConstraint ::= '!' TripleConstraint
+\end{verbatim}
+
 A negated triple constraint shape expression is a triple constraint shape expression that has a cardinality of $none$.
 \begin{zed}
 	NegatedTripleConstraint == \\
@@ -445,6 +563,11 @@ A negated triple constraint shape expression is a triple constraint shape expres
 \end{zed}
 
 \subsection{$NegatedInverseTripleConstraint$}
+
+\begin{verbatim}
+NegatedInverseTripleConstraint ::= '!' InverseTripleConstraint
+\end{verbatim}
+
 A negated inverse triple constraint shape expression is an inverse triple constraint shape expression that has a cardinality of $none$.
 \begin{zed}
 	NegatedInverseTripleConstraint == \\
@@ -452,18 +575,34 @@ A negated inverse triple constraint shape expression is an inverse triple constr
 \end{zed}
 
 \subsection{$ValueConstr$}
-A value constraint places conditions on the object nodes of triples.
+
+\begin{verbatim}
+ValueConstr ::= ValueSet | LiteralDatatype XSFacet? | NodeKind
+\end{verbatim}
+
+A value constraint places conditions on the object nodes of triples for normal predicates
+and on the subject nodes of triples for inverse predicates.
 \begin{zed}
 	ValueConstr == \ran valueSet \cup \ran datatype \cup \ran kind
 \end{zed}
 
 \subsection{$ValueSet$}
+
+\begin{verbatim}
+ValueSet ::= set of literals and IRI
+\end{verbatim}
+
 The set of value set value constraints is the range of the $valueSet$ constructor.
 \begin{zed}
 	ValueSet == \ran valueSet
 \end{zed}
 
 \subsection{$LiteralDatatype$}
+
+\begin{verbatim}
+LiteralDatatype ::= an RDF literal datatype
+\end{verbatim}
+
 A literal datatype is an IRI that identifies a set of literal RDF terms.
 We assume that this subset of IRIs is given.
 \begin{axdef}
@@ -476,6 +615,11 @@ We also assume that we are given an interpretation of each literal datatype as a
 \end{axdef}
 
 \subsection{$NodeKind$}
+
+\begin{verbatim}
+NodeKind ::= 'iri' | 'blank' | 'literal' | 'nonliteral'
+\end{verbatim}
+
 A node kind identifies a subset of RDF terms.
 \begin{zed}
 	NodeKind ::= iri | blank | literal | nonliteral
@@ -501,6 +645,11 @@ Each node kind corresponds to a set of RDF terms.
 \end{axdef}
 
 \subsection{$XSFacet$}
+
+\begin{verbatim}
+XSFacet ::= an XSD restriction
+\end{verbatim}
+
 An XML Schema facet places restrictions on literals.
 We assume this is a given set.
 \begin{zed}
@@ -519,54 +668,99 @@ We also assume that we are given an interpretation of facets as sets of literals
 \end{itemize}
 
 \subsection{$ShapeConstr$}
+
+\begin{verbatim}
+ShapeConstr ::= ('!')? DisjShapeConstr | ConjShapeConstraint
+\end{verbatim}
+
 A shape constraint requires that a node satisfy logical combinations of one or more other shapes which are identified by their shape labels.
 \begin{zed}
 	ShapeConstr == \ran or \cup \ran and \cup \ran nor \cup \ran nand
 \end{zed}
 
 \subsection{$DisjShapeConstr$}
+
+\begin{verbatim}
+DisjShapeConstr ::= ShapeLabel ('or' ShapeLabel)*
+\end{verbatim}
+
 The set of all disjunctive shape constraints is the range of the $or$ constructor.
 \begin{zed}
 	DisjShapeConstr == \ran or
 \end{zed}
 
 \subsection{$ConjShapeConstraint$}
+
+\begin{verbatim}
+ConjShapeConstraint ::= ShapeLabel ('and' ShapeLabel)*
+\end{verbatim}
+
 The set of all conjunctive shape constraints is the range of the $and$ constructor.
 \begin{zed}
 	ConjShapeConstraint == \ran and
 \end{zed}
 
 \subsection{$SomeOfShape$}
+
+\begin{verbatim}
+SomeOfShape ::= ShapeExpr ('|' ShapeExpr)*
+\end{verbatim}
+
 The set of some-of shape expressions is the range of $someOf$.
 \begin{zed}
 	SomeOfShape == \ran someOf
 \end{zed}
 
 \subsection{$OneOfShape$}
+
+\begin{verbatim}
+OneOfShape ::= ShapeExpr ('@' ShapeExpr)* 
+\end{verbatim}
+
 The set of one-of shape expressions is the range of $oneOf$.
 \begin{zed}
 	OneOfShape == \ran oneOf
 \end{zed}
 
 \subsection{$GroupShape$}
+
+\begin{verbatim}
+GroupShape ::= ShapeExpr (',' ShapeExpr)*
+\end{verbatim}
+
 The set of grouping shape expressions is the range of $group$.
 \begin{zed}
 	GroupShape == \ran group
 \end{zed}
 
 \subsection{$RepetitionShape$}
+
+\begin{verbatim}
+RepetitionShape ::= ShapeExpr Cardinality
+\end{verbatim}
+
 The set of repetition shape expressions is the range of $repetition$.
 \begin{zed}
 	RepetitionShape == \ran repetition
 \end{zed}
 
 \subsection{$ExtensionCondition$}
+
+\begin{verbatim}
+ExtensionCondition ::= ExtLangName ExtDefinition
+\end{verbatim}
+
 An extension condition is the definition of a constraint written in an extension language
 \begin{zed}
 	ExtensionCondition == ExtLangName \cross ExtDefinition
 \end{zed}
 
 \subsection{$ExtLangName$}
+
+\begin{verbatim}
+ExtLangName ::= an identifier
+\end{verbatim}
+
 An extension language name is an identifier for an extension language, such as JavaScript.
 We assume this is a given set.
 \begin{zed}
@@ -574,6 +768,11 @@ We assume this is a given set.
 \end{zed}
 
 \subsection{$ExtDefinition$}
+
+\begin{verbatim}
+ExtDefinition ::= a string
+\end{verbatim}
+
 An extension definition is a program written in some extension language that implements a constraint check.
 We assume this is a given set.
 \begin{zed}
@@ -640,8 +839,7 @@ Given a shape definition $d$, let $refsShapeDefinition(d)$ be the set of shape l
 \t1		refsShapeDefinition(d) = refsShapeExpr(shapeExpr(d))
 \end{axdef}
 \begin{itemize}
-\item The set of references in a closed shape definition is the set of references in its shape expression.
-\item The set of references in an open shape definition is the set of references in its shape expression.
+\item The set of references in a shape definition is the set of references in its shape expression.
 \end{itemize}
 
 Given a shape expression $x$, let $refsShapeExpr(x)$ be the set of shape labels referenced in $x$.
@@ -805,11 +1003,9 @@ triple constraint in $x$.
 \end{axdef}
 \begin{itemize}
 \item An empty shape expression has no properties.
-\item The properties of a triple constraint shape expression or an negated triple constraint
-shape expression are the properties of their triple constraints.
-\item Inverse triple constraint shape expressions and negated inverse triple constraint shape expressions
-have no properties.
-\item The properties of a some-of, one-of, or grouping shape expression is the union of the properties of their
+\item The properties of a triple constraint shape expression are the properties of its triple constraint.
+\item Inverse triple constraint shape expressions have no properties.
+\item The properties of a some-of, one-of, or grouping shape expression are the union of the properties of their
 component shape expressions.
 \item The properties of a repetition shape expression are the properties of the shape expression being repeated.
 \end{itemize}
@@ -853,10 +1049,8 @@ inverse triple constraint in $x$.
 \end{axdef}
 \begin{itemize}
 \item An empty shape expression has no inverse properties.
-\item A triple constraint shape expression or an negated triple constraint
-shape expression has no inverse properties.
-\item The inverse properties of an inverse triple constraint shape expression or negated inverse triple constraint shape expression
-are the inverse properties in its inverse triple constraint.
+\item A triple constraint shape expression has no inverse properties.
+\item The inverse properties of an inverse triple constraint shape expression are the inverse properties in its inverse triple constraint.
 \item The inverse properties of a some-of, one-of, or grouping shape expression is the union of the inverse properties of their
 component shape expressions.
 \item The inverse properties of a repetition shape expression are the inverse properties of the shape expression being repeated.
@@ -899,6 +1093,11 @@ that defines $T1$ refers to $T2$.\begin{schema}{DepGraph}
 \also
 	edges =  \{~ T1, T2 : nodes | T2 \in refsShapeExpr(expr(T1,S)) ~\}
 \end{schema}
+\begin{itemize}
+\item The nodes are the shapes of the schema.
+\item There is an edge from $T1$ to $T2$ when the definition of $T1$ refers to $T2$.
+\end{itemize}
+
 
 \subsubsection{$dep\_graph$}
 Let $dep\_graph(S)$ be the dependency graph of $S$.
@@ -1050,7 +1249,8 @@ Given a shape expression $x$, let $underOneOfExpr(x)$ be the set of labels that 
 \subsubsection{$inTripleConstr$}
 Let $inTripleConstr(S)$ be the set of labels $T$ such that there is a shape label $T1$ and a triple constraint 
 {\tt p::C} or an inverse shape triple constraint
-{\tt \verb+^+p::C} $x$ in $expr(T1, S)$, and $T$ appears in $x$.
+{\tt \verb+^+p::C} in $expr(T1, S)$, and $T$ appears in $C$.
+
 Note that this definition looks wrong since it does not involve negation of shapes.
 Nevertheless, a literal translation is given here.
 The only difference between $inTripleConstr(S)$ and $refs(S)$ seems to be that the cardinality on the triple and inverse triple
@@ -1197,9 +1397,11 @@ $dep\_subgraph(T,S)$ is a directed, acyclic graph.
 \end{zed}
 
 The semantics of shape expression schemas is sound only for well-defined schemas.
-Only well-defined schema will be considered from this point forward.
+Only well-defined schemas will be considered from this point forward.
 
 \section{Declarative semantics of shape expression schemas}
+\label{sec-declarative-semantics}
+
 Recall that negated triple and inverse triple shape expressions are represented by the corresponding non-negated expressions with cardinality
 $none =$ {\tt [0;0]}.
 
@@ -2481,6 +2683,84 @@ Let the return codes for the language oracles be $ReturnCode$.
 	\forall ExtensionConditions @ \\
 \t1		f(lang, G, n, cond) \in \{trueRC, undefinedRC \}
 \end{zed}
+
+\section{Issues}
+\label{sec-issues}
+
+Some areas of the semantics draft have multiple interpretations or appear to be wrong and therefore require further clarification.
+These areas are discussed below.
+
+\subsection{{\tt dep-subgraph(T,S)}}
+In the definition of {\tt dep-subgraph(T,S)}, is the shape {\tt T} considered to be reachable from itself?
+
+\subsection{{\tt negshapes(S)}}
+In the definition of {\tt negshapes(S)}, the third bullet states:
+
+\begin{verbatim}
+there is a shape label T1 and a shape triple constraint p::C, 
+or an inverse shape triple constraints ^p::C in expr(T1, S), 
+and T appears in C.
+\end{verbatim}
+
+This statement looks wrong because it omits mention of negation. 
+If there is no negation involved, why would {\tt T} be in {\tt negshapes(S)}?
+
+Does this definition only select directed triple constraints that have cardinality {\tt [1,1]}
+because that is the default?
+If not then {\tt negshapes(S)} is the set of all labels that are referenced in any shape definition ($refs(S)$), which seems wrong.
+
+\subsection{Triple matches constraint}
+The definition of matching {\tt p:C} and {\tt \verb+^+p:C} omits consideration of {\tt C}.
+The explanation is as follows.
+
+\begin{verbatim}
+The following definition introduces the notion of satisfiability 
+of a shape constraint by a set of triples. Such satisfiability 
+is going to be used for checking that the neighborhood of 
+a node satisfies locally the constraints defined by a shape 
+expression, without taking into account whether the shapes 
+required by the triple constraints and inverse triple constraints 
+are satisfied.
+\end{verbatim}
+
+This statement implies that only shape constraints should be ignored here.
+However, the definition ignores the value set constraints too.
+This looks wrong.
+
+\subsection{{\tt rule-triple-constraint}}
+Add the condition that all the outgoing triples must be distinct.
+
+\subsection{{\tt rule-inverse-triple-constraint}}
+Add the condition that all the incoming triples must be distinct.
+
+\subsection{{\tt rule-group}}
+Add the condition that {\tt i} and {\tt j} must be different.
+
+\subsection{{\tt rule-repeat}}
+Add the condition that {\tt i} and {\tt j} must be different.
+
+\subsection{Reduced Schema for {\tt rule-one-of}}
+This is an edge case.
+It only makes sense to reduce the schema if there are more than one components.
+Applying {\tt rule-one-of} to a sequence of one shape is equivalent to requiring that shape.
+Add this condition to the definition.
+
+\subsection{Reduced Schema for {\tt rule-one-of} under a repetition expression}
+Something looks wrong here because if a repetition expression has a one-of expression as a child then there is no way
+to associate the reduced one-of expression with just the path taken in the proof tree since all the children of a repetition expression
+share the same shape expression. However, a rule-repeat node in the proof tree has many children and there is no requirement
+that all children would use the same branch of the one-of expression.
+
+\section{Conclusion}
+\label{sec-conclusion}
+
+The exercise of formalizing the semantics draft has resulted in a considerable expansion in the size of the document.
+The result has been the identification of a number of quality issues.
+This exercise has also established that the recursive definitions in the semantics draft are well-founded.
+However, it is not clear that these definitions produce results that agree with our intuition, or that they can be computed efficiently.
+
+One possible way to further validate the semantics draft is to translate it into an executable formal specification system
+such as Coq \cite{bertot:coq} and test it on a set of examples, including both typical documents and corner cases.
 
 \bibliography{z-core-shacl-semantics}
 \end{document}  

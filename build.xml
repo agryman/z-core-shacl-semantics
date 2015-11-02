@@ -56,4 +56,15 @@
 		<ttl2xml model="user-shape" />
 	</target>
 
+	<target name="arxiv" description="Creates a zip file for uploading to arxiv.">
+		<zip basedir="." destfile="arxiv.zip" includesfile="arxiv-manifest.txt" />
+	</target>
+
+	<target name="clean" description="Removes all generated files.">
+		<delete file="z-core-shacl-semantics.fuzz" />
+		<delete file="z-core-shacl-semantics.prelude" />
+		<delete file="arxiv.zip" />
+	</target>
+
+
 </project>

@@ -1,0 +1,5 @@
+z-core-shacl-semantics.tex
+z-core-shacl-semantics.bbl
+fuzz.sty
+oxsz*.*
+z*.mf
