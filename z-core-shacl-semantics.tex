@@ -780,7 +780,7 @@ We assume this is a given set.
 \end{zed}
 
 An extension condition represents a function that takes as input a pointed graph, and returns
-as output a boolean with the value {\tt true} if the constraint is violated and {\tt false} is satisfied.
+as output a boolean with the value {\tt true} if the constraint is violated and {\tt false} if satisfied.
 We assume we are given a mapping that associates each extension condition with the set of pointed graphs that violate it.
 \begin{axdef}
 	violatedBy: ExtensionCondition \fun \power PointedGraph
@@ -1122,7 +1122,7 @@ $T$ to $U$.
 
 \subsubsection{$DepSubgraph$}
 Given a well-formed schema $S$ and a shape label $T$ in $S$, the shapes dependency
-graph is the subgraph induced by the nodes that are reachable from $T$.
+subgraph for $T$ is the subgraph induced by the nodes that are reachable from $T$.
 \begin{schema}{DepSubgraph}
 	S: SchemaWF \\
 	T: ShapeLabel \\
@@ -1144,7 +1144,7 @@ In particular, this literal translation does not explicitly include the label $T
 Therefore $T$ will not be in the subgraph unless it is in a directed cycle of edges.
 
 \subsubsection{$dep\_subgraph$}
-Let $dep\_subgraph(T,S)$ be the dependency subgraph of $T$ in $S$.
+Let $dep\_subgraph(T,S)$ be the dependency subgraph for $T$ in $S$.
 \begin{axdef}
 	dep\_subgraph : ShapeLabel \cross SchemaWF \pfun DiGraph[ShapeLabel]
 \where
